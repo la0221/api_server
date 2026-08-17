@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Edge 模擬器：刻意零 ProjectReference、零 NuGet——
+       證明任何第三方上位機只靠 HTTP + 內建 JSON 就能接上中央推論 server（契約試金石）。 -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>EdgeSimulator</AssemblyName>
+    <RootNamespace>AIVision.EdgeSimulator</RootNamespace>
+  </PropertyGroup>
+
+</Project>

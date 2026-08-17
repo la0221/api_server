@@ -1,0 +1,25 @@
+feat: 1223 UX 優化與瑕疵統計功能改進
+
+## 瑕疵統計系統
+- 新增 GetDefectStatisticsByWorkOrderIdAsync 查詢瑕疵統計
+- 工單載入時還原歷史瑕疵統計（不再歸零）
+- 支援 TypeName/DisplayName 雙向比對
+- 新增瑕疵統計面板 ScrollViewer（MaxHeight=300）
+
+## 歷史圖庫修復
+- 修改 IsNg 判斷邏輯：Result != OK 即為 NG
+- 修復 NG 圖片顯示「紅底+OK」的問題
+
+## 測試功能
+- 新增「開發-新增測試檢測記錄」選單
+- 支援選擇圖片、設定 OK/NG、輸入瑕疵名稱
+- 測試資料同步更新瑕疵統計面板
+
+## 文件
+- 新增權限管理系統設計方案文件
+- 新增歷史圖庫修復計畫文件
+- 新增 UX 優化需求分析報告
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>

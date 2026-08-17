@@ -1,0 +1,53 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.MoldCodeBatchView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="模號離線 / 批量辨識" Height="660" Width="940"
+        WindowStartupLocation="CenterScreen" Background="#1E1E1E">
+    <DockPanel Margin="12">
+
+        <!-- 工具列 -->
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="模型" Foreground="#D4D4D4" VerticalAlignment="Center" Margin="0,0,6,0"/>
+            <ComboBox ItemsSource="{Binding AvailableModels}"
+                      SelectedItem="{Binding SelectedModel}"
+                      DisplayMemberPath="Name"
+                      IsEnabled="{Binding NotRunning}"
+                      Width="200" Margin="0,0,12,0" VerticalAlignment="Center"/>
+            <Button Content="選擇資料夾" Command="{Binding PickFolderCommand}"
+                    IsEnabled="{Binding NotRunning}" Padding="14,6" Margin="0,0,8,0"/>
+            <!-- 可編輯下拉：預設常用測試資料夾（appsettings TestImageFolders）＋可直接貼任意路徑 -->
+            <ComboBox IsEditable="True"
+                      ItemsSource="{Binding TestFolderOptions}"
+                      Text="{Binding SelectedFolder, UpdateSourceTrigger=PropertyChanged}"
+                      IsEnabled="{Binding NotRunning}"
+                      Width="470" VerticalAlignment="Center"
+                      ToolTip="從下拉選常用測試資料夾，或直接貼上任意路徑（清單可在 appsettings 的 TestImageFolders 增修）"/>
+            <CheckBox Content="子資料夾名當正解"
+                      IsChecked="{Binding UseSubfolderAsGroundTruth}"
+                      Foreground="#D4D4D4" VerticalAlignment="Center" Margin="10,0"/>
+            <Button Content="執行批量辨識" Command="{Binding RunBatchCommand}"
+                    IsEnabled="{Binding NotRunning}" Padding="14,6"
+                    Background="#0E639C" Foreground="White" BorderThickness="0"/>
+        </StackPanel>
+
+        <!-- 結果摘要 -->
+        <Border DockPanel.Dock="Bottom" Background="#252526" Padding="10" Margin="0,8,0,0">
+            <TextBlock Text="{Binding Summary}" Foreground="#9CDCFE" TextWrapping="Wrap" FontSize="13"/>
+        </Border>
+
+        <!-- 結果表 -->
+        <DataGrid ItemsSource="{Binding Results}" AutoGenerateColumns="False" IsReadOnly="True"
+                  Background="#1E1E1E" Foreground="#D4D4D4" BorderBrush="#3F3F46"
+                  GridLinesVisibility="Horizontal" HeadersVisibility="Column"
+                  RowBackground="#2D2D30" AlternatingRowBackground="#252526"
+                  CanUserAddRows="False" SelectionMode="Single">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="檔案" Binding="{Binding File}" Width="2.2*"/>
+                <DataGridTextColumn Header="預期" Binding="{Binding Expected}" Width="*"/>
+                <DataGridTextColumn Header="讀到" Binding="{Binding Read}" Width="*"/>
+                <DataGridTextColumn Header="信心" Binding="{Binding Confidence, StringFormat=F3}" Width="0.8*"/>
+                <DataGridTextColumn Header="相符" Binding="{Binding Match}" Width="0.7*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Window>

@@ -1,0 +1,20 @@
+feat: 新增 Workflow 瑕疵統計與專案載入功能
+
+主要變更:
+- 專案載入: 修復專案載入前未關閉現有服務導致 License 錯誤
+- JPEG 轉換: 新增 RAW 圖片轉 JPEG 功能避免 HTTP 500 錯誤
+- 瑕疵判定: 實作最大面積瑕疵判定邏輯 (OrderByDescending)
+- 瑕疵統計: 修復 AutoRunService 瑕疵統計資料傳遞
+- Log 增強: 新增瑕疵統計詳細 Log 輸出
+- 光源控制: 新增 RS232 序列埠光源控制支援
+- Overlay 規劃: 建立瑕疵 Overlay 功能開發規劃文件
+
+技術細節:
+- WorkflowAiInferencePort: 支援 Mono8/Mono16/RGB8/BGR8 轉 JPEG
+- ProjectInitializationService: 載入前先 StopAsync() + 500ms delay
+- AutoRunService: 傳遞 defectsForStats 而非 null
+- ShellViewModel: UpdateDefectStats 詳細 Log
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>

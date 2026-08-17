@@ -1,0 +1,83 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.SplashWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="AIVision"
+        Height="400" Width="500"
+        WindowStartupLocation="CenterScreen"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        AllowsTransparency="True"
+        Background="Transparent">
+
+    <Border Background="White"
+            CornerRadius="12"
+            BorderBrush="#E0E0E0"
+            BorderThickness="1">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.3"/>
+        </Border.Effect>
+
+        <Grid Margin="40">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Logo -->
+            <Image Grid.Row="0"
+                   Source="/Assets/logo_splash.png"
+                   MaxHeight="120"
+                   MaxWidth="280"
+                   Stretch="Uniform"
+                   VerticalAlignment="Center"
+                   HorizontalAlignment="Center"/>
+
+            <!-- 應用程式名稱 -->
+            <TextBlock Grid.Row="1"
+                       Text="AIVision"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="#333333"
+                       HorizontalAlignment="Center"
+                       Margin="0,24,0,4"/>
+
+            <!-- 副標題 -->
+            <TextBlock Grid.Row="2"
+                       Text="工業視覺檢測系統"
+                       FontSize="14"
+                       Foreground="#666666"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,32"/>
+
+            <!-- 載入進度條 -->
+            <ProgressBar Grid.Row="3"
+                         x:Name="LoadingProgress"
+                         Height="4"
+                         IsIndeterminate="True"
+                         Foreground="#2196F3"
+                         Background="#E0E0E0"
+                         BorderThickness="0"
+                         Margin="0,0,0,12"/>
+
+            <!-- 載入狀態文字 -->
+            <TextBlock Grid.Row="4"
+                       x:Name="LoadingStatus"
+                       Text="正在初始化..."
+                       FontSize="12"
+                       Foreground="#888888"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,24"/>
+
+            <!-- 版權資訊 -->
+            <TextBlock Grid.Row="5"
+                       Text="© 2024 Spingence Inc."
+                       FontSize="10"
+                       Foreground="#AAAAAA"
+                       HorizontalAlignment="Center"/>
+        </Grid>
+    </Border>
+</Window>

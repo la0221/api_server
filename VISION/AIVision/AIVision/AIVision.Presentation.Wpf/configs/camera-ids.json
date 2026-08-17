@@ -1,0 +1,8 @@
+{
+  "Preferred": [],
+  "ExposureTimeUs": 15000.0,
+  "GainSelector": "AnalogAll",
+  "Gain": 2.0,
+  "Height": 1024,
+  "AcquisitionLineRate": null
+}

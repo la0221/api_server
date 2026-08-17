@@ -1,0 +1,83 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.ModelPublishView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="模型發布（上架到伺服器）" Height="520" Width="720"
+        WindowStartupLocation="CenterOwner" Background="#1E1E1E" ResizeMode="NoResize">
+    <StackPanel Margin="16">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="發布到：" Foreground="#9CDCFE" FontSize="13" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ServerBaseUrl, TargetNullValue='（未設定；請先到「API 伺服器設定」套用位址）'}"
+                       Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <WrapPanel Margin="0,0,0,10">
+            <TextBlock Text="用途：" Foreground="#D4D4D4" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <ComboBox ItemsSource="{Binding TaskOptions}"
+                      SelectedItem="{Binding SelectedTask}"
+                      IsEnabled="{Binding NotBusy}"
+                      Width="200" VerticalAlignment="Center" Margin="0,0,16,0"
+                      ToolTip="模型按用途分家：OCR（雙 head 兩顆）/ 公母模 / 瑕疵（各一顆）。選了用途才知道要幾顆檔案。"/>
+            <TextBlock Text="版本號：" Foreground="#D4D4D4" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding Version, UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding NotBusy}"
+                     Width="140" VerticalAlignment="Center"
+                     ToolTip="如 v6.8。字母/數字開頭，允許 . _ -。版本不可變：重發要換新號。"/>
+        </WrapPanel>
+
+        <TextBlock Text="模型檔（依用途要求；上傳後自動以目標檔名落地，來源檔名不限）"
+                   Foreground="#D4D4D4" FontSize="12" Margin="0,0,0,4"/>
+        <ItemsControl ItemsSource="{Binding FileSlots}" Margin="0,0,0,6">
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <DockPanel Margin="0,0,0,6">
+                        <TextBlock Text="{Binding TargetName}" Foreground="#DCDCAA" FontFamily="Consolas"
+                                   Width="110" VerticalAlignment="Center" DockPanel.Dock="Left"/>
+                        <Button Content="選檔…" DockPanel.Dock="Right" Padding="12,4" Margin="8,0,0,0"
+                                Background="#3E3E42" Foreground="White" BorderThickness="0"
+                                Command="{Binding DataContext.BrowseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}"/>
+                        <TextBox Text="{Binding SourcePath, UpdateSourceTrigger=PropertyChanged}"
+                                 VerticalAlignment="Center"
+                                 ToolTip="訓練產出的模型檔完整路徑。選 .onnx 直接上傳；選 .pt（如 ...\runs\mohao\weights\best.pt）會在發布時自動轉檔（產出 .onnx 落在同資料夾）"/>
+                    </DockPanel>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <WrapPanel Margin="0,0,0,6">
+            <TextBlock Text="來源備註（選填）：" Foreground="#D4D4D4" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding SourceNote, UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding NotBusy}" Width="460" VerticalAlignment="Center"
+                     ToolTip="寫進 _publish.json 溯源，例如「Content_lens V6.8 訓練，2026-07-31」"/>
+        </WrapPanel>
+
+        <!-- ②③判定門檻/前處理隨模型版控（AINavi 借鏡；皆選填，留空=沿用內建） -->
+        <WrapPanel Margin="0,0,0,10">
+            <TextBlock Text="判定門檻（選填）：模號信心" Foreground="#D4D4D4" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding JudgeConfMohao, UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding NotBusy}" Width="60" VerticalAlignment="Center" Margin="0,0,8,0"
+                     ToolTip="0~1；隨此版本版控（_publish.json judge 段）。CRNN：低於門檻→建議複檢。留空=用內建門檻。"/>
+            <TextBlock Text="穴號信心" Foreground="#D4D4D4" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding JudgeConfXuehao, UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding NotBusy}" Width="60" VerticalAlignment="Center" Margin="0,0,14,0"
+                     ToolTip="0~1；同左。產線判定標準異動＝發新版本改門檻，不改程式。"/>
+            <TextBlock Text="前處理 JSON（進階，選填）：" Foreground="#D4D4D4" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <TextBox Text="{Binding PreprocessJson, UpdateSourceTrigger=PropertyChanged}"
+                     IsEnabled="{Binding NotBusy}" Width="300" VerticalAlignment="Center"
+                     ToolTip='鍵=WarpPolarParams 欄位，如 {"Imgsz":640,"RInner":0.6}。隨版本版控；ocr_pair 指定版本推論時採用。鍵名打錯會在發布時被擋。'/>
+        </WrapPanel>
+
+        <Button Content="發布（上傳到伺服器）" Command="{Binding PublishCommand}"
+                IsEnabled="{Binding NotBusy}" Padding="18,8" HorizontalAlignment="Left"
+                Background="#2D7D46" Foreground="White" BorderThickness="0" FontWeight="Bold"
+                ToolTip="POST /api/models/{task}：server 端對版檔案組成 → 算 md5 → 原子落地 → 寫 _publish.json 溯源。版本已存在會擋（409）。"/>
+
+        <Border Background="#1B1B1B" CornerRadius="4" Padding="10" Margin="0,12,0,0" MinHeight="110">
+            <TextBlock Text="{Binding StatusText, TargetNullValue='（尚未發布）建議動線：發布 → 雙head頁指定此版本隔離試模驗收 → 通過才讓各 edge 下載採用。'}"
+                       Foreground="#4EC9B0" TextWrapping="Wrap" FontSize="13" FontFamily="Consolas"/>
+        </Border>
+
+        <TextBlock Foreground="#808080" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0"
+                   Text="本頁＝publish_pair_model.ps1 的 UI 形式，但走 HTTP 上傳：工程師在任何一台裝有本軟體的電腦都能發布到中央伺服器。發布 ≠ 採用——server 收到後只是「上架」，各 edge 要用仍須自行下載（md5 複驗）＋載入。"/>
+    </StackPanel>
+</Window>

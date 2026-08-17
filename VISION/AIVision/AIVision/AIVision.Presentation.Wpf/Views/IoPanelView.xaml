@@ -1,0 +1,306 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.IoPanelView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        xmlns:plc="clr-namespace:AIVision.Domain.Plc;assembly=AIVision.Domain"
+        mc:Ignorable="d"
+        Title="PLC 連線控制"
+        Width="900"
+        Height="700"
+        WindowStartupLocation="CenterOwner"
+        Background="White"
+        d:DataContext="{d:DesignInstance vm:IoPanelViewModel, IsDesignTimeCreatable=False}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="160" />
+        </Grid.RowDefinitions>
+
+        <!-- 標題 -->
+        <TextBlock Text="PLC 連線控制"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   Margin="0,0,0,12" />
+
+        <!-- 連線控制區 -->
+        <Border Grid.Row="1"
+                BorderBrush="#E0E0E0"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="12"
+                Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="150" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="80" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- IP / Port -->
+                <TextBlock Text="IP:" VerticalAlignment="Center" Margin="0,0,8,0" />
+                <TextBox Grid.Column="1"
+                         Text="{Binding PlcIp, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalAlignment="Center"
+                         Padding="6,4" />
+                <TextBlock Grid.Column="2" Text="Port:" VerticalAlignment="Center" Margin="16,0,8,0" />
+                <TextBox Grid.Column="3"
+                         Text="{Binding PlcPort, UpdateSourceTrigger=PropertyChanged}"
+                         VerticalAlignment="Center"
+                         Padding="6,4" />
+
+                <!-- 連線按鈕 -->
+                <StackPanel Grid.Column="4" Orientation="Horizontal" Margin="16,0,0,0">
+                    <Button Content="連線"
+                            Command="{Binding ConnectCommand}"
+                            Width="70" Height="28"
+                            Margin="0,0,8,0" />
+                    <Button Content="斷線"
+                            Command="{Binding DisconnectCommand}"
+                            Width="70" Height="28" />
+                </StackPanel>
+
+                <!-- 狀態顯示 -->
+                <StackPanel Grid.Row="1" Grid.ColumnSpan="6"
+                            Orientation="Horizontal"
+                            Margin="0,12,0,0">
+                    <TextBlock Text="連線狀態:" VerticalAlignment="Center" />
+                    <Ellipse Width="12" Height="12" Margin="8,0,4,0">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="#E53935" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                        <Setter Property="Fill" Value="#43A047" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock VerticalAlignment="Center" Margin="0,0,24,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="未連線" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                        <Setter Property="Text" Value="已連線" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <TextBlock Text="交握狀態:" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding HandshakeStateText}"
+                               FontWeight="SemiBold"
+                               Foreground="#1976D2"
+                               VerticalAlignment="Center"
+                               Margin="8,0,0,0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 訊號顯示區 -->
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- 地址顯示模式切換 -->
+            <Border Grid.Row="0"
+                    BorderBrush="#E0E0E0"
+                    BorderThickness="1"
+                    CornerRadius="4"
+                    Padding="8"
+                    Margin="0,0,0,8"
+                    Background="#F5F5F5">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="地址顯示模式："
+                               VerticalAlignment="Center"
+                               FontWeight="SemiBold"
+                               Margin="0,0,12,0"/>
+                    <ComboBox SelectedItem="{Binding AddressBaseMode, Mode=TwoWay}"
+                              IsEnabled="{Binding CanChangeAddressBaseMode}"
+                              Width="250"
+                              VerticalAlignment="Center">
+                        <ComboBox.Items>
+                            <plc:PlcAddressBaseMode>ZeroBased</plc:PlcAddressBaseMode>
+                            <plc:PlcAddressBaseMode>OneBased</plc:PlcAddressBaseMode>
+                        </ComboBox.Items>
+                    </ComboBox>
+                    <TextBlock VerticalAlignment="Center"
+                               Foreground="#757575"
+                               FontStyle="Italic"
+                               Margin="12,0,0,0">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="（切換後自動更新訊號顯示）"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsHandshakeRunning}" Value="True">
+                                        <Setter Property="Text" Value="（交握中禁止切換）"/>
+                                        <Setter Property="Foreground" Value="#E53935"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+
+            <!-- 訊號列表 -->
+            <Grid Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <!-- PLC → PC 輸入訊號 -->
+                <GroupBox Header="PLC → PC (輸入訊號)" Margin="0,0,8,0">
+                <ItemsControl ItemsSource="{Binding InputSignals}" Margin="8">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Ellipse Width="14" Height="14">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Fill" Value="#BDBDBD" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsOn}" Value="True">
+                                                    <Setter Property="Fill" Value="#43A047" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Address}"
+                                           Foreground="#757575"
+                                           FontFamily="Consolas"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Name}"
+                                           FontWeight="Medium"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </GroupBox>
+
+            <!-- PC → PLC 輸出訊號 -->
+            <GroupBox Grid.Column="1" Header="PC → PLC (輸出訊號)" Margin="8,0,0,0">
+                <ItemsControl ItemsSource="{Binding OutputSignals}" Margin="8">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="18" />
+                                    <ColumnDefinition Width="80" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <Ellipse Width="14" Height="14">
+                                    <Ellipse.Style>
+                                        <Style TargetType="Ellipse">
+                                            <Setter Property="Fill" Value="#BDBDBD" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsOn}" Value="True">
+                                                    <Setter Property="Fill" Value="#43A047" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Ellipse.Style>
+                                </Ellipse>
+                                <TextBlock Grid.Column="1"
+                                           Text="{Binding Address}"
+                                           Foreground="#757575"
+                                           FontFamily="Consolas"
+                                           VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="2"
+                                           Text="{Binding Name}"
+                                           FontWeight="Medium"
+                                           VerticalAlignment="Center" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </GroupBox>
+            </Grid>
+        </Grid>
+
+        <!-- 控制按鈕區 -->
+        <Border Grid.Row="3"
+                BorderBrush="#E0E0E0"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="12"
+                Margin="0,12,0,12">
+            <StackPanel Orientation="Horizontal">
+                <Button Content="啟動交握"
+                        Command="{Binding StartHandshakeCommand}"
+                        Width="90" Height="32"
+                        Margin="0,0,8,0"
+                        Background="#1976D2"
+                        Foreground="White" />
+                <Button Content="停止交握"
+                        Command="{Binding StopHandshakeCommand}"
+                        Width="90" Height="32"
+                        Margin="0,0,8,0" />
+                <Button Content="重置"
+                        Command="{Binding ResetCommand}"
+                        Width="70" Height="32"
+                        Margin="0,0,24,0" />
+
+                <Separator Width="1" Background="#E0E0E0" Margin="0,0,24,0" />
+
+                <Button Content="取像完成"
+                        Command="{Binding NotifyCaptureCompleteCommand}"
+                        Width="80" Height="32"
+                        Margin="0,0,8,0"
+                        Background="#FF9800"
+                        Foreground="White"
+                        ToolTip="手動通知取像完成 (CaptureStatus → OFF)" />
+                <Button Content="手動 OK"
+                        Command="{Binding SendManualOkCommand}"
+                        Width="80" Height="32"
+                        Margin="0,0,8,0"
+                        Background="#43A047"
+                        Foreground="White" />
+                <Button Content="手動 NG"
+                        Command="{Binding SendManualNgCommand}"
+                        Width="80" Height="32"
+                        Background="#E53935"
+                        Foreground="White" />
+
+                <Button Content="清除紀錄"
+                        Command="{Binding ClearLogsCommand}"
+                        Width="80" Height="32"
+                        Margin="24,0,0,0" />
+            </StackPanel>
+        </Border>
+
+        <!-- 交握紀錄 -->
+        <GroupBox Grid.Row="4" Header="交握紀錄">
+            <ListBox ItemsSource="{Binding HandshakeLogs}"
+                     FontFamily="Consolas"
+                     FontSize="12"
+                     BorderThickness="0" />
+        </GroupBox>
+    </Grid>
+</Window>

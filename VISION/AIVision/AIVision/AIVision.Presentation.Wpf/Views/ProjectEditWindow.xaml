@@ -1,0 +1,373 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.ProjectEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        xmlns:converters="clr-namespace:AIVision.Presentation.Wpf.Converters"
+        mc:Ignorable="d"
+        Title="{Binding WindowTitle}"
+        Height="680" Width="520"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="NoResize"
+        Background="#FF1E1E1E"
+        d:DataContext="{d:DesignInstance vm:ProjectEditViewModel, IsDesignTimeCreatable=False}">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <!-- ComboBox 樣式使用全域定義的 ComboBoxItemStyle -->
+    </Window.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="25">
+
+            <!-- 基本資訊 -->
+            <TextBlock Text="基本資訊"
+                       FontSize="16" FontWeight="Bold"
+                       Foreground="White"
+                       Margin="0,0,0,12"/>
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="90"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0"
+                           Text="專案名稱:"
+                           Foreground="#FFAAAAAA"
+                           VerticalAlignment="Center"/>
+                <TextBox Grid.Row="0" Grid.Column="1"
+                         Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                         Background="#FF2D2D2D"
+                         Foreground="White"
+                         BorderBrush="#FF3F3F46"
+                         Padding="10,8"
+                         Margin="0,0,0,8"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0"
+                           Text="描述:"
+                           Foreground="#FFAAAAAA"
+                           VerticalAlignment="Center"/>
+                <TextBox Grid.Row="1" Grid.Column="1"
+                         Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}"
+                         Background="#FF2D2D2D"
+                         Foreground="White"
+                         BorderBrush="#FF3F3F46"
+                         Padding="10,8"/>
+            </Grid>
+
+            <!-- PLC 設定 -->
+            <TextBlock Text="PLC 設定"
+                       FontSize="16" FontWeight="Bold"
+                       Foreground="White"
+                       Margin="0,0,0,12"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                <TextBlock Text="IP:"
+                           Foreground="#FFAAAAAA"
+                           Width="40"
+                           VerticalAlignment="Center"/>
+                <TextBox Text="{Binding PlcHost, UpdateSourceTrigger=PropertyChanged}"
+                         Width="150"
+                         Background="#FF2D2D2D"
+                         Foreground="White"
+                         BorderBrush="#FF3F3F46"
+                         Padding="10,8"/>
+                <TextBlock Text="Port:"
+                           Foreground="#FFAAAAAA"
+                           Margin="15,0,0,0"
+                           Width="40"
+                           VerticalAlignment="Center"/>
+                <TextBox Text="{Binding PlcPort, UpdateSourceTrigger=PropertyChanged}"
+                         Width="80"
+                         Background="#FF2D2D2D"
+                         Foreground="White"
+                         BorderBrush="#FF3F3F46"
+                         Padding="10,8"/>
+            </StackPanel>
+
+            <!-- 相機設定 -->
+            <TextBlock Text="相機設定"
+                       FontSize="16" FontWeight="Bold"
+                       Foreground="White"
+                       Margin="0,0,0,12"/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                <TextBlock Text="UserSet:"
+                           Foreground="#FFAAAAAA"
+                           Width="70"
+                           VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding AvailableUserSets}"
+                          SelectedItem="{Binding CameraUserSet}"
+                          Style="{StaticResource LightComboBoxStyle}"
+                          Width="150"/>
+            </StackPanel>
+
+            <!-- 光源設定 -->
+            <TextBlock Text="光源設定"
+                       FontSize="16" FontWeight="Bold"
+                       Foreground="White"
+                       Margin="0,0,0,12"/>
+            <StackPanel Margin="0,0,0,20">
+                <!-- COM Port 設定 -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <TextBlock Text="COM Port:"
+                               Foreground="#FFAAAAAA"
+                               Width="70"
+                               VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding AvailableComPorts}"
+                              SelectedItem="{Binding LightComPort}"
+                              Style="{StaticResource LightComboBoxStyle}"
+                              Width="120"/>
+                </StackPanel>
+
+                <!-- 亮度設定 -->
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="CH1 亮度:"
+                               Foreground="#FFAAAAAA"
+                               Width="70"
+                               VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding LightCh1, UpdateSourceTrigger=PropertyChanged}"
+                             Width="60"
+                             Background="#FF2D2D2D"
+                             Foreground="White"
+                             BorderBrush="#FF3F3F46"
+                             Padding="10,8"/>
+                    <TextBlock Text="CH2 亮度:"
+                               Foreground="#FFAAAAAA"
+                               Margin="20,0,0,0"
+                               Width="70"
+                               VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding LightCh2, UpdateSourceTrigger=PropertyChanged}"
+                             Width="60"
+                             Background="#FF2D2D2D"
+                             Foreground="White"
+                             BorderBrush="#FF3F3F46"
+                             Padding="10,8"/>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- AI 模型設定 -->
+            <TextBlock Text="AI 模型設定"
+                       FontSize="16" FontWeight="Bold"
+                       Foreground="White"
+                       Margin="0,0,0,12"/>
+            <StackPanel Margin="0,0,0,20">
+                <!-- 模式選擇：模型管理 vs 手動輸入 -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                    <RadioButton Content="從模型管理選擇 (推薦)"
+                                 Foreground="White"
+                                 IsChecked="{Binding UseModelSelection}"
+                                 GroupName="ModelInputMode"/>
+                    <RadioButton Content="手動輸入"
+                                 Foreground="White"
+                                 Margin="20,0,0,0"
+                                 IsChecked="{Binding UseManualInput, Mode=OneWay}"
+                                 GroupName="ModelInputMode"/>
+                </StackPanel>
+
+                <!-- 新架構：從模型管理選擇 -->
+                <StackPanel Visibility="{Binding UseModelSelection, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="選擇模型："
+                               Foreground="#FFAAAAAA"
+                               Margin="0,0,0,8"/>
+                    <ComboBox ItemsSource="{Binding AvailableModels}"
+                              SelectedItem="{Binding SelectedModel}"
+                              DisplayMemberPath="DisplayNameWithType"
+                              Style="{StaticResource LightComboBoxStyle}"
+                              Margin="0,0,0,12"/>
+
+                    <!-- 選中模型的資訊預覽 -->
+                    <Border BorderBrush="#FF3F3F46"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="12"
+                            Background="#FF252526"
+                            Visibility="{Binding SelectedModel, Converter={StaticResource NullToVisibilityConverter}}">
+                        <StackPanel>
+                            <TextBlock Text="{Binding SelectedModel.Description}"
+                                       Foreground="#FF888888"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,8"
+                                       Visibility="{Binding SelectedModel.Description, Converter={StaticResource NullToVisibilityConverter}}"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="推論類型："
+                                           Foreground="#FF888888"
+                                           Width="80"/>
+                                <TextBlock Foreground="#FF00AA00">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Workflow"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding SelectedModel.InferenceType}" Value="SingleModel">
+                                                    <Setter Property="Text" Value="SingleModel"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="EdgeHub："
+                                           Foreground="#FF888888"
+                                           Width="80"/>
+                                <TextBlock Foreground="White">
+                                    <Run Text="{Binding SelectedModel.EdgeHubHost, Mode=OneWay}"/>
+                                    <Run Text=":"/>
+                                    <Run Text="{Binding SelectedModel.EdgeHubPort, Mode=OneWay}"/>
+                                </TextBlock>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal"
+                                        Visibility="{Binding SelectedModel.IsDefectFilteringEnabled, Converter={StaticResource BoolToVisibilityConverter}}">
+                                <TextBlock Text="瑕疵過濾："
+                                           Foreground="#FF888888"
+                                           Width="80"/>
+                                <TextBlock Text="已啟用"
+                                           Foreground="#FF00AA00"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- 載入中提示 -->
+                    <TextBlock Text="載入模型清單中..."
+                               Foreground="#FF888888"
+                               Visibility="{Binding IsLoadingModels, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                </StackPanel>
+
+                <!-- 舊架構：手動輸入 (Fallback) -->
+                <StackPanel Visibility="{Binding UseManualInput, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <!-- 類型選擇 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <RadioButton Content="Workflow"
+                                     Foreground="White"
+                                     IsChecked="{Binding IsWorkflow}"
+                                     GroupName="AiType"/>
+                        <RadioButton Content="Single Model"
+                                     Foreground="White"
+                                     Margin="20,0,0,0"
+                                     IsChecked="{Binding IsSingleModel}"
+                                     GroupName="AiType"/>
+                    </StackPanel>
+
+                    <!-- EdgeHub 設定 -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,12">
+                        <TextBlock Text="EdgeHub IP:"
+                                   Foreground="#FFAAAAAA"
+                                   Width="80"
+                                   VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding EdgeHubHost, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="150"
+                                 Background="#FF2D2D2D"
+                                 Foreground="White"
+                                 BorderBrush="#FF3F3F46"
+                                 Padding="10,8"/>
+                        <TextBlock Text="Port:"
+                                   Foreground="#FFAAAAAA"
+                                   Margin="15,0,0,0"
+                                   Width="40"
+                                   VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding EdgeHubPort, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="70"
+                                 Background="#FF2D2D2D"
+                                 Foreground="White"
+                                 BorderBrush="#FF3F3F46"
+                                 Padding="10,8"/>
+                    </StackPanel>
+
+                    <!-- Workflow 設定 -->
+                    <StackPanel IsEnabled="{Binding IsWorkflow}">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <TextBlock Text="Workflow Port:"
+                                       Foreground="#FFAAAAAA"
+                                       Width="100"
+                                       VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding WorkflowPort, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="80"
+                                     Background="#FF2D2D2D"
+                                     Foreground="White"
+                                     BorderBrush="#FF3F3F46"
+                                     Padding="10,8"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="設定檔路徑:"
+                                       Foreground="#FFAAAAAA"
+                                       Width="80"
+                                       VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding WorkflowSettingPath, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="250"
+                                     Background="#FF2D2D2D"
+                                     Foreground="White"
+                                     BorderBrush="#FF3F3F46"
+                                     Padding="10,8"/>
+                            <Button Content="瀏覽..."
+                                    Command="{Binding BrowseWorkflowCommand}"
+                                    Margin="8,0,0,0"
+                                    Padding="12,8"
+                                    Background="#FF3F3F46"
+                                    Foreground="White"
+                                    BorderThickness="0"
+                                    Cursor="Hand"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Single Model 設定 -->
+                    <StackPanel IsEnabled="{Binding IsSingleModel}"
+                                Visibility="{Binding IsSingleModel, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,8">
+                            <TextBlock Text="推論 Port:"
+                                       Foreground="#FFAAAAAA"
+                                       Width="80"
+                                       VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding InferencePort, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="80"
+                                     Background="#FF2D2D2D"
+                                     Foreground="White"
+                                     BorderBrush="#FF3F3F46"
+                                     Padding="10,8"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="模型路徑:"
+                                       Foreground="#FFAAAAAA"
+                                       Width="80"
+                                       VerticalAlignment="Center"/>
+                            <TextBox Text="{Binding ModelPath, UpdateSourceTrigger=PropertyChanged}"
+                                     Width="350"
+                                     Background="#FF2D2D2D"
+                                     Foreground="White"
+                                     BorderBrush="#FF3F3F46"
+                                     Padding="10,8"/>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- 按鈕 -->
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Right"
+                        Margin="0,10,0,0">
+                <Button Content="取消"
+                        Command="{Binding CancelCommand}"
+                        Padding="25,10"
+                        Margin="0,0,10,0"
+                        Background="#FF3F3F46"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand"/>
+                <Button Content="儲存"
+                        Command="{Binding SaveCommand}"
+                        IsEnabled="{Binding CanSave}"
+                        Padding="25,10"
+                        Background="#FF007ACC"
+                        Foreground="White"
+                        BorderThickness="0"
+                        Cursor="Hand"
+                        FontWeight="SemiBold"/>
+            </StackPanel>
+
+        </StackPanel>
+    </ScrollViewer>
+</Window>

@@ -1,0 +1,188 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.ImageBatchView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        mc:Ignorable="d"
+        Title="圖片點檢"
+        Width="1200"
+        Height="760"
+        MinWidth="1000"
+        MinHeight="680"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundGrayBrush}"
+        d:DataContext="{d:DesignInstance vm:ImageBatchViewModel, IsDesignTimeCreatable=False}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="360" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Row="0"
+                Grid.Column="0"
+                Background="#FF0F0F10"
+                CornerRadius="12"
+                Padding="12"
+                Margin="0,0,16,12">
+            <Viewbox Stretch="Uniform">
+                <Image Source="{Binding PreviewBitmap}" Stretch="Uniform" />
+            </Viewbox>
+        </Border>
+
+        <StackPanel Grid.Row="0"
+                    Grid.Column="1"
+                    Margin="0,0,0,12">
+            <!-- 當前推論結果卡片 -->
+            <Border Background="#FFF4F6FA"
+                    CornerRadius="8"
+                    Padding="12"
+                    Margin="0,0,0,12"
+                    BorderBrush="#FFE0E0E0"
+                    BorderThickness="1">
+                <StackPanel>
+                    <TextBlock Text="當前推論"
+                               FontSize="12"
+                               Foreground="#FF666666"
+                               Margin="0,0,0,4" />
+                    <TextBlock Text="{Binding CurrentLabel, FallbackValue='等待推論'}"
+                               FontSize="20"
+                               FontWeight="Bold"
+                               Foreground="#FF333333"
+                               Margin="0,0,0,8" />
+                    <StackPanel Orientation="Horizontal"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="信心分數："
+                                   FontSize="12"
+                                   Foreground="#FF666666"
+                                   Margin="0,0,4,0" />
+                        <TextBlock Text="{Binding CurrentConfidence, StringFormat={}{0:P1}, FallbackValue='--'}"
+                                   FontSize="12"
+                                   Foreground="#FF3B82F6"
+                                   FontWeight="SemiBold" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <TextBlock Text="批量統計"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#FF333333" />
+
+            <UniformGrid Columns="3"
+                         Margin="0,12,0,12">
+                <Border Background="#FFF4F6FA" Padding="8" CornerRadius="8" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="已檢" FontSize="12" Foreground="#FF666666" />
+                        <TextBlock Text="{Binding ProcessedCount}" FontSize="22" FontWeight="Bold" />
+                    </StackPanel>
+                </Border>
+                <Border Background="#FFF4F6FA" Padding="8" CornerRadius="8" Margin="0,0,8,0">
+                    <StackPanel>
+                        <TextBlock Text="待檢" FontSize="12" Foreground="#FF666666" />
+                        <TextBlock Text="{Binding PendingCount}" FontSize="22" FontWeight="Bold" />
+                    </StackPanel>
+                </Border>
+                <Border Background="#FFF4F6FA" Padding="8" CornerRadius="8">
+                    <StackPanel>
+                        <TextBlock Text="總張數" FontSize="12" Foreground="#FF666666" />
+                        <TextBlock Text="{Binding TotalCount}" FontSize="22" FontWeight="Bold" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Border Background="White"
+                    CornerRadius="12"
+                    Padding="12"
+                    BorderBrush="#FFE0E0E0"
+                    BorderThickness="1">
+                <DataGrid ItemsSource="{Binding Stats}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          CanUserDeleteRows="False"
+                          HeadersVisibility="Column"
+                          IsReadOnly="True"
+                          RowHeaderWidth="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Folder/Label" Binding="{Binding Label}" Width="*" />
+                        <DataGridTextColumn Header="Count" Binding="{Binding Count}" Width="80" />
+                        <DataGridTextColumn Header="Ratio" Binding="{Binding Ratio, StringFormat={}{0:P1}}" Width="100" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+        </StackPanel>
+
+        <Border Grid.Row="1"
+                Grid.ColumnSpan="2"
+                Background="White"
+                Padding="12"
+                CornerRadius="12"
+                BorderBrush="#FFE0E0E0"
+                BorderThickness="1">
+            <DockPanel LastChildFill="True">
+                <StackPanel Orientation="Horizontal"
+                            DockPanel.Dock="Left"
+                            VerticalAlignment="Center"
+                            Margin="0,0,12,0">
+                <TextBlock Text="路徑"
+                           VerticalAlignment="Center"
+                           Margin="0,0,8,0" />
+                <TextBox Width="400"
+                         Text="{Binding RootPath}"
+                         IsReadOnly="True"
+                         Margin="0,0,8,0" />
+                <Button Content="瀏覽..."
+                        MinWidth="80"
+                        Command="{Binding BrowseCommand}" />
+                <CheckBox Content="Save"
+                          Margin="24,0,0,0"
+                          VerticalAlignment="Center"
+                          IsChecked="{Binding SaveEnabled}" />
+                <CheckBox Content="Overlay"
+                          Margin="12,0,0,0"
+                          VerticalAlignment="Center"
+                          IsChecked="{Binding OverlayEnabled}"
+                          IsEnabled="{Binding OverlaySupported}"
+                          ToolTip="僅分割模型支援 Overlay" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal"
+                            DockPanel.Dock="Right"
+                            VerticalAlignment="Center"
+                            Margin="12,0,0,0">
+                <Button Content="開始 / 繼續"
+                        Padding="18,8"
+                        Margin="0,0,8,0"
+                        Command="{Binding ToggleRunCommand}" />
+                <Button Content="暫停"
+                        Padding="18,8"
+                        Margin="0,0,8,0"
+                        Command="{Binding PauseCommand}"
+                        IsEnabled="{Binding IsRunning}" />
+                <Button Content="停止"
+                        Padding="18,8"
+                        Background="{StaticResource NgRedBrush}"
+                        Foreground="White"
+                        Command="{Binding StopCommand}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Vertical"
+                            VerticalAlignment="Center">
+                <ProgressBar Height="18"
+                             Width="280"
+                             Minimum="0"
+                             Maximum="100"
+                             Value="{Binding ProgressPercent}" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Margin="0,6,0,0"
+                           Foreground="#FF666666"
+                           FontSize="12" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>

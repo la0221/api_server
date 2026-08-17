@@ -1,0 +1,545 @@
+{
+    "workflow_setting": {
+        "nodes": [
+            {
+                "id": "WorkflowInputBlock-0",
+                "type": "custom",
+                "position": {
+                    "x": 448.78965016582544,
+                    "y": -16.09986252586977
+                },
+                "data": {
+                    "type": "WorkflowInputBlock",
+                    "iconType": "mui",
+                    "iconName": "Collections",
+                    "label": "\u5de5\u4f5c\u6d41\u7a0b\u8f38\u5165",
+                    "description": "\u5de5\u4f5c\u6d41\u7a0b\u7684\u8d77\u9ede\uff0c\u7528\u65bc\u5b9a\u7fa9\u8f38\u5165\u8cc7\u6599\u683c\u5f0f\u3002",
+                    "color": "bg-blue-500",
+                    "params": {
+                        "name": "WorkflowInputBlock-0"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                }
+            },
+            {
+                "id": "StaticCropBlock-1",
+                "type": "custom",
+                "position": {
+                    "x": 330,
+                    "y": 135
+                },
+                "data": {
+                    "type": "StaticCropBlock",
+                    "iconType": "mui",
+                    "iconName": "CropFree",
+                    "label": "\u975c\u614b\u88c1\u5207",
+                    "description": "\u4f7f\u7528\u56fa\u5b9a\u5c3a\u5bf8\u88c1\u5207\u5716\u50cf\u3002",
+                    "color": "bg-rose-500",
+                    "params": {
+                        "coordinates": [
+                            {
+                                "x1": 0,
+                                "y1": 0,
+                                "x2": 860,
+                                "y2": 650
+                            }
+                        ],
+                        "response": {
+                            "enabled": true,
+                            "format": []
+                        },
+                        "name": "TF-01-Corp"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                },
+                "selected": false,
+                "dragging": false
+            },
+            {
+                "id": "StaticCropBlock-2",
+                "type": "custom",
+                "position": {
+                    "x": 600,
+                    "y": 135
+                },
+                "data": {
+                    "type": "StaticCropBlock",
+                    "iconType": "mui",
+                    "iconName": "CropFree",
+                    "label": "\u975c\u614b\u88c1\u5207",
+                    "description": "\u4f7f\u7528\u56fa\u5b9a\u5c3a\u5bf8\u88c1\u5207\u5716\u50cf\u3002",
+                    "color": "bg-rose-500",
+                    "params": {
+                        "coordinates": [
+                            {
+                                "x1": 1270,
+                                "y1": 0,
+                                "x2": 2342,
+                                "y2": 650
+                            }
+                        ],
+                        "response": {
+                            "enabled": true,
+                            "format": []
+                        },
+                        "name": "Surface-01-Corp"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                },
+                "selected": false,
+                "dragging": false
+            },
+            {
+                "id": "ObjectDetectionModelBlock-3",
+                "type": "custom",
+                "position": {
+                    "x": 330,
+                    "y": 240
+                },
+                "data": {
+                    "type": "ObjectDetectionModelBlock",
+                    "iconType": "png",
+                    "label": "\u7269\u4ef6\u5075\u6e2c",
+                    "description": "\u5075\u6e2c\u4e26\u5b9a\u4f4d\u5716\u50cf\u6216\u5f71\u7247\u5e40\u4e2d\u7684\u7269\u4ef6\u3002",
+                    "color": "bg-slate-500",
+                    "params": {
+                        "device": "gpu:0",
+                        "batch_size": 4,
+                        "response": {
+                            "enabled": true,
+                            "format": [
+                                "TLBRWH"
+                            ]
+                        },
+                        "name": "TF-02-ObjectDetection",
+                        "model": "Jarrly_TF_Obj_251205_1"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                },
+                "selected": false,
+                "dragging": false
+            },
+            {
+                "id": "DynamicCropBlock-4",
+                "type": "custom",
+                "position": {
+                    "x": 330,
+                    "y": 345
+                },
+                "data": {
+                    "type": "DynamicCropBlock",
+                    "iconType": "mui",
+                    "iconName": "CenterFocusStrongOutlined",
+                    "label": "\u52d5\u614b\u88c1\u5207",
+                    "description": "\u57fa\u65bc\u5167\u5bb9\u7684\u667a\u6167\u88c1\u5207\u3002",
+                    "color": "bg-purple-500",
+                    "params": {
+                        "percent_padding": 10,
+                        "pixel_padding": 0,
+                        "rotate_back": false,
+                        "response": {
+                            "enabled": false,
+                            "format": []
+                        },
+                        "name": "TF-03-DynamicCrop"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                },
+                "selected": false,
+                "dragging": false
+            },
+            {
+                "id": "SegmentationModelBlock-5",
+                "type": "custom",
+                "position": {
+                    "x": 330,
+                    "y": 450
+                },
+                "data": {
+                    "type": "SegmentationModelBlock",
+                    "iconType": "png",
+                    "label": "\u5206\u5272",
+                    "description": "\u5716\u50cf\u7684\u50cf\u7d20\u7d1a\u5206\u5272\u3002",
+                    "color": "bg-slate-500",
+                    "params": {
+                        "device": "gpu:0",
+                        "batch_size": 4,
+                        "response": {
+                            "enabled": true,
+                            "format": [
+                                "base64",
+                                "bbox"
+                            ]
+                        },
+                        "name": "TF-04-Segmentation",
+                        "model": "Jarrly_TF_Seg_251205_1"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                },
+                "selected": false,
+                "dragging": false
+            },
+            {
+                "id": "ObjectDetectionModelBlock-6",
+                "type": "custom",
+                "position": {
+                    "x": 600,
+                    "y": 240
+                },
+                "data": {
+                    "type": "ObjectDetectionModelBlock",
+                    "iconType": "png",
+                    "label": "\u7269\u4ef6\u5075\u6e2c",
+                    "description": "\u5075\u6e2c\u4e26\u5b9a\u4f4d\u5716\u50cf\u6216\u5f71\u7247\u5e40\u4e2d\u7684\u7269\u4ef6\u3002",
+                    "color": "bg-slate-500",
+                    "params": {
+                        "device": "gpu:0",
+                        "batch_size": 4,
+                        "response": {
+                            "enabled": true,
+                            "format": [
+                                "TLBRWH"
+                            ]
+                        },
+                        "name": "Surface-02-ObjectDetection",
+                        "model": "Jarrly_Surface_Obj_251205_1"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                },
+                "selected": true,
+                "dragging": false
+            },
+            {
+                "id": "DynamicCropBlock-7",
+                "type": "custom",
+                "position": {
+                    "x": 600,
+                    "y": 345
+                },
+                "data": {
+                    "type": "DynamicCropBlock",
+                    "iconType": "mui",
+                    "iconName": "CenterFocusStrongOutlined",
+                    "label": "\u52d5\u614b\u88c1\u5207",
+                    "description": "\u57fa\u65bc\u5167\u5bb9\u7684\u667a\u6167\u88c1\u5207\u3002",
+                    "color": "bg-purple-500",
+                    "params": {
+                        "percent_padding": 10,
+                        "pixel_padding": 0,
+                        "rotate_back": false,
+                        "response": {
+                            "enabled": false,
+                            "format": []
+                        },
+                        "name": "Surface-03-DynamicCrop"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                },
+                "selected": false,
+                "dragging": false
+            },
+            {
+                "id": "SegmentationModelBlock-8",
+                "type": "custom",
+                "position": {
+                    "x": 600,
+                    "y": 450
+                },
+                "data": {
+                    "type": "SegmentationModelBlock",
+                    "iconType": "png",
+                    "label": "\u5206\u5272",
+                    "description": "\u5716\u50cf\u7684\u50cf\u7d20\u7d1a\u5206\u5272\u3002",
+                    "color": "bg-slate-500",
+                    "params": {
+                        "device": "gpu:0",
+                        "batch_size": 4,
+                        "response": {
+                            "enabled": true,
+                            "format": [
+                                "base64",
+                                "bbox"
+                            ]
+                        },
+                        "name": "Surface-04-Segmentation",
+                        "model": "Jarrly_Surface_Seg_251205_1"
+                    }
+                },
+                "measured": {
+                    "width": 180,
+                    "height": 60
+                },
+                "selected": false,
+                "dragging": false
+            }
+        ],
+        "edges": [
+            {
+                "style": {
+                    "stroke": "#b1b1b7",
+                    "strokeWidth": 2
+                },
+                "animated": true,
+                "source": "WorkflowInputBlock-0",
+                "target": "StaticCropBlock-1",
+                "id": "xy-edge__WorkflowInputBlock-0-StaticCropBlock-1"
+            },
+            {
+                "style": {
+                    "stroke": "#b1b1b7",
+                    "strokeWidth": 2
+                },
+                "animated": true,
+                "source": "WorkflowInputBlock-0",
+                "target": "StaticCropBlock-2",
+                "id": "xy-edge__WorkflowInputBlock-0-StaticCropBlock-2"
+            },
+            {
+                "style": {
+                    "stroke": "#b1b1b7",
+                    "strokeWidth": 2
+                },
+                "animated": true,
+                "source": "StaticCropBlock-1",
+                "target": "ObjectDetectionModelBlock-3",
+                "id": "xy-edge__StaticCropBlock-1-ObjectDetectionModelBlock-3"
+            },
+            {
+                "style": {
+                    "stroke": "#b1b1b7",
+                    "strokeWidth": 2
+                },
+                "animated": true,
+                "source": "ObjectDetectionModelBlock-3",
+                "target": "DynamicCropBlock-4",
+                "id": "xy-edge__ObjectDetectionModelBlock-3-DynamicCropBlock-4"
+            },
+            {
+                "style": {
+                    "stroke": "#b1b1b7",
+                    "strokeWidth": 2
+                },
+                "animated": true,
+                "source": "DynamicCropBlock-4",
+                "target": "SegmentationModelBlock-5",
+                "id": "xy-edge__DynamicCropBlock-4-SegmentationModelBlock-5"
+            },
+            {
+                "style": {
+                    "stroke": "#b1b1b7",
+                    "strokeWidth": 2
+                },
+                "animated": true,
+                "source": "StaticCropBlock-2",
+                "target": "ObjectDetectionModelBlock-6",
+                "id": "xy-edge__StaticCropBlock-2-ObjectDetectionModelBlock-6"
+            },
+            {
+                "style": {
+                    "stroke": "#b1b1b7",
+                    "strokeWidth": 2
+                },
+                "animated": true,
+                "source": "ObjectDetectionModelBlock-6",
+                "target": "DynamicCropBlock-7",
+                "id": "xy-edge__ObjectDetectionModelBlock-6-DynamicCropBlock-7"
+            },
+            {
+                "style": {
+                    "stroke": "#b1b1b7",
+                    "strokeWidth": 2
+                },
+                "animated": true,
+                "source": "DynamicCropBlock-7",
+                "target": "SegmentationModelBlock-8",
+                "id": "xy-edge__DynamicCropBlock-7-SegmentationModelBlock-8"
+            }
+        ],
+        "settings": {
+            "WorkflowInputBlock-0": {
+                "name": "WorkflowInputBlock-0"
+            },
+            "StaticCropBlock-1": {
+                "coordinates": [
+                    {
+                        "x1": 0,
+                        "y1": 0,
+                        "x2": 860,
+                        "y2": 650
+                    }
+                ],
+                "response": {
+                    "enabled": true,
+                    "format": []
+                },
+                "name": "TF-01-Corp"
+            },
+            "StaticCropBlock-2": {
+                "coordinates": [
+                    {
+                        "x1": 1270,
+                        "y1": 0,
+                        "x2": 2342,
+                        "y2": 650
+                    }
+                ],
+                "response": {
+                    "enabled": true,
+                    "format": []
+                },
+                "name": "Surface-01-Corp"
+            },
+            "SegmentationModelBlock-3": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "response": {
+                    "enabled": true,
+                    "format": [
+                        "base64",
+                        "bbox"
+                    ]
+                },
+                "name": "SegmentationModelBlock-3"
+            },
+            "SegmentationModelBlock-4": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "response": {
+                    "enabled": true,
+                    "format": [
+                        "base64",
+                        "bbox"
+                    ]
+                },
+                "name": "SegmentationModelBlock-4"
+            },
+            "DynamicCropBlock-6": {
+                "percent_padding": 10,
+                "pixel_padding": 0,
+                "rotate_back": false,
+                "response": {
+                    "enabled": false,
+                    "format": []
+                },
+                "name": "DynamicCropBlock-6"
+            },
+            "ObjectDetectionModelBlock-7": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "response": {
+                    "enabled": true,
+                    "format": [
+                        "TLBRWH"
+                    ]
+                },
+                "name": "ObjectDetectionModelBlock-7"
+            },
+            "DynamicCropBlock-8": {
+                "percent_padding": 10,
+                "pixel_padding": 0,
+                "rotate_back": false,
+                "response": {
+                    "enabled": false,
+                    "format": []
+                },
+                "name": "DynamicCropBlock-8"
+            },
+            "ObjectDetectionModelBlock-3": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "response": {
+                    "enabled": true,
+                    "format": [
+                        "TLBRWH"
+                    ]
+                },
+                "name": "TF-02-ObjectDetection",
+                "model": "Jarrly_TF_Obj_251205_1"
+            },
+            "DynamicCropBlock-4": {
+                "percent_padding": 10,
+                "pixel_padding": 0,
+                "rotate_back": false,
+                "response": {
+                    "enabled": false,
+                    "format": []
+                },
+                "name": "TF-03-DynamicCrop"
+            },
+            "SegmentationModelBlock-5": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "response": {
+                    "enabled": true,
+                    "format": [
+                        "base64",
+                        "bbox"
+                    ]
+                },
+                "name": "TF-04-Segmentation",
+                "model": "Jarrly_TF_Seg_251205_1"
+            },
+            "ObjectDetectionModelBlock-6": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "response": {
+                    "enabled": true,
+                    "format": [
+                        "TLBRWH"
+                    ]
+                },
+                "name": "Surface-02-ObjectDetection",
+                "model": "Jarrly_Surface_Obj_251205_1"
+            },
+            "DynamicCropBlock-7": {
+                "percent_padding": 10,
+                "pixel_padding": 0,
+                "rotate_back": false,
+                "response": {
+                    "enabled": false,
+                    "format": []
+                },
+                "name": "Surface-03-DynamicCrop"
+            },
+            "SegmentationModelBlock-8": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "response": {
+                    "enabled": true,
+                    "format": [
+                        "base64",
+                        "bbox"
+                    ]
+                },
+                "name": "Surface-04-Segmentation",
+                "model": "Jarrly_Surface_Seg_251205_1"
+            }
+        }
+    },
+    "create_time": "2025-12-05 13:35:18",
+    "update_time": "2025-12-05 18:04:51"
+}

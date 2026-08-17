@@ -1,0 +1,143 @@
+{
+    "version": "1.0",
+    "input": {
+        "type": "WorkflowInput",
+        "name": "input_image",
+        "param": {},
+        "response": {}
+    },
+    "steps": [
+        {
+            "type": "StaticCrop",
+            "name": "tf-01-corp",
+            "source": "input_image",
+            "param": {
+                "coordinates": [
+                    {
+                        "x1": 0,
+                        "y1": 0,
+                        "x2": 860,
+                        "y2": 650
+                    }
+                ]
+            },
+            "response": {
+                "enabled": true,
+                "format": []
+            }
+        },
+        {
+            "type": "StaticCrop",
+            "name": "surface-01-corp",
+            "source": "input_image",
+            "param": {
+                "coordinates": [
+                    {
+                        "x1": 1270,
+                        "y1": 0,
+                        "x2": 2342,
+                        "y2": 650
+                    }
+                ]
+            },
+            "response": {
+                "enabled": true,
+                "format": []
+            }
+        },
+        {
+            "type": "ObjectDetectionModel",
+            "name": "tf-02-objectdetection",
+            "source": "tf-01-corp",
+            "param": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "model_path": "C:\\Users\\Public\\Documents\\Spingence\\AINavi\\models\\Jarrly_TF_Obj_251205_1"
+            },
+            "response": {
+                "enabled": true,
+                "format": [
+                    "TLBRWH"
+                ]
+            }
+        },
+        {
+            "type": "DynamicCrop",
+            "name": "tf-03-dynamiccrop",
+            "source": "tf-02-objectdetection",
+            "param": {
+                "percent_padding": 10,
+                "pixel_padding": 0,
+                "rotate_back": false
+            },
+            "response": {
+                "enabled": false,
+                "format": []
+            }
+        },
+        {
+            "type": "SegmentationModel",
+            "name": "tf-04-segmentation",
+            "source": "tf-03-dynamiccrop",
+            "param": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "model_path": "C:\\Users\\Public\\Documents\\Spingence\\AINavi\\models\\Jarrly_TF_Seg_251205_1"
+            },
+            "response": {
+                "enabled": true,
+                "format": [
+                    "base64",
+                    "bbox"
+                ]
+            }
+        },
+        {
+            "type": "ObjectDetectionModel",
+            "name": "surface-02-objectdetection",
+            "source": "surface-01-corp",
+            "param": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "model_path": "C:\\Users\\Public\\Documents\\Spingence\\AINavi\\models\\Jarrly_Surface_Obj_251205_1"
+            },
+            "response": {
+                "enabled": true,
+                "format": [
+                    "TLBRWH"
+                ]
+            }
+        },
+        {
+            "type": "DynamicCrop",
+            "name": "surface-03-dynamiccrop",
+            "source": "surface-02-objectdetection",
+            "param": {
+                "percent_padding": 10,
+                "pixel_padding": 0,
+                "rotate_back": false
+            },
+            "response": {
+                "enabled": false,
+                "format": []
+            }
+        },
+        {
+            "type": "SegmentationModel",
+            "name": "surface-04-segmentation",
+            "source": "surface-03-dynamiccrop",
+            "param": {
+                "device": "gpu:0",
+                "batch_size": 4,
+                "model_path": "C:\\Users\\Public\\Documents\\Spingence\\AINavi\\models\\Jarrly_Surface_Seg_251205_1"
+            },
+            "response": {
+                "enabled": true,
+                "format": [
+                    "base64",
+                    "bbox"
+                ]
+            }
+        }
+    ]
+}

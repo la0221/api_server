@@ -1,0 +1,99 @@
+{
+  "currentModelName": "WPC_top",
+  "models": [
+    {
+      "name": "Jarrly_P885_Workflow",
+      "description": "Jarrly P885 Workflow (TF + Surface 檢測)",
+      "edgeHubHost": "192.168.1.95",
+      "edgeHubPort": 5001,
+      "uuid": "model",
+      "modelPath": "",
+      "inferencePort": 8001,
+      "modelType": 1,
+      "inferenceType": 1,
+      "workflowPort": 9080,
+      "workflowSettingPath": "C:\\Users\\Public\\Documents\\Spingence\\AINavi\\workflows\\Jarrly_P885\\workflow_setting.json",
+      "resultTypes": ["TF_crash", "dents"],
+      "resultTypeDisplayNames": {
+        "TF_crash": "TF碰撞",
+        "dents": "表面凹痕"
+      },
+      "defectFiltering": {
+        "enabled": true,
+        "pixelAreaMm2": 0.0001,
+        "pixelSizeMm": 0.01,
+        "minimumAreaMm2": 0.5,
+        "mediumAreaMm2": 2.0,
+        "closeDistanceMm": 50.0,
+        "criticalClasses": ["TF_crash"]
+      }
+    },
+    {
+      "name": "WPC_top",
+      "description": "WPC Top 模型",
+      "edgeHubHost": "192.168.1.95",
+      "edgeHubPort": 5001,
+      "uuid": "model",
+      "modelPath": "/home/smasoft/Public/ainavi_edgehub/models/WPC_top",
+      "inferencePort": 8001,
+      "modelType": 0,
+      "resultTypes": ["OK", "NG"],
+      "resultTypeDisplayNames": {
+        "OK": "良品",
+        "NG": "不良品"
+      }
+    },
+    {
+      "name": "demo_seg_1",
+      "description": "Demo Segmentation 模型 1",
+      "edgeHubHost": "192.168.1.95",
+      "edgeHubPort": 5001,
+      "uuid": "model",
+      "modelPath": "/home/smasoft/Public/ainavi_edgehub/models/demo_seg_1",
+      "inferencePort": 8001,
+      "modelType": 1,
+      "resultTypes": ["misalign", "residual", "short", "bridging", "winding"],
+      "resultTypeDisplayNames": {
+        "misalign": "位置偏移",
+        "residual": "殘留",
+        "short": "短路",
+        "bridging": "焊橋",
+        "winding": "繞線"
+      }
+    },
+    {
+      "name": "demo_seg_2",
+      "description": "Demo Segmentation 模型 2",
+      "edgeHubHost": "192.168.1.95",
+      "edgeHubPort": 5001,
+      "uuid": "model",
+      "modelPath": "/home/smasoft/Public/ainavi_edgehub/models/demo_seg_2",
+      "inferencePort": 8001,
+      "modelType": 1,
+      "resultTypes": ["scratch", "stain", "crack"],
+      "resultTypeDisplayNames": {
+        "scratch": "刮痕",
+        "stain": "髒汙",
+        "crack": "裂痕"
+      }
+    },
+    {
+      "name": "Ecoco_cls_251103",
+      "description": "Ecoco Classification 模型",
+      "edgeHubHost": "192.168.1.95",
+      "edgeHubPort": 5001,
+      "uuid": "model",
+      "modelPath": "/home/smasoft/Public/ainavi_edgehub/models/Ecoco_cls_251103",
+      "inferencePort": 8001,
+      "modelType": 0,
+      "resultTypes": ["A1", "A2", "A3", "A4", "OTHERS"],
+      "resultTypeDisplayNames": {
+        "A1": "A級品",
+        "A2": "B級品",
+        "A3": "C級品",
+        "A4": "D級品",
+        "OTHERS": "其他"
+      }
+    }
+  ]
+}

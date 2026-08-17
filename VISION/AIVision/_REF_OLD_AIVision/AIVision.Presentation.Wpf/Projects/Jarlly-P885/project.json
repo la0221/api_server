@@ -1,0 +1,31 @@
+{
+  "name": "Jarlly-P885",
+  "description": "P885 產品線視覺檢測專案 (Workflow 模式)",
+  "camera": {
+    "camFilePath": null,
+    "userSet": "UserSet0"
+  },
+  "light": {
+    "interface": "TCP",
+    "portName": null,
+    "tcpHost": "0.0.0.0",
+    "tcpPort": 7200,
+    "channelBrightness": {
+      "1": 128,
+      "2": 128
+    }
+  },
+  "plc": {
+    "host": "192.168.0.20",
+    "port": 502
+  },
+  "aiModel": {
+    "inferenceType": "Workflow",
+    "edgeHubHost": "127.0.0.1",
+    "edgeHubPort": 5001,
+    "inferencePort": 8001,
+    "modelPath": null,
+    "workflowPort": 11001,
+    "workflowSettingPath": "C:\\Users\\Public\\Documents\\Spingence\\AINavi\\workflows\\Jarlly-P885\\workflow_setting.json"
+  }
+}

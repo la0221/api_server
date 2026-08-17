@@ -1,0 +1,214 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.LightControlView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        xmlns:local="clr-namespace:AIVision.Presentation.Wpf.Converters"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:LightControlViewModel}"
+        Title="LTS 光源控制器面板"
+        Height="720"
+        Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <local:InverseBoolConverter x:Key="InverseBoolConverter"/>
+        <local:BoolToColorConverter x:Key="BoolToColorConverter"/>
+        <local:BoolToLightIndicatorConverter x:Key="BoolToLightIndicatorConverter"/>
+        <local:BoolToOnOffTextConverter x:Key="BoolToOnOffTextConverter"/>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="20">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="LTS 2DPC 系列光源控制" FontSize="24" FontWeight="Bold" Foreground="#333333"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="12" Height="12" Fill="{Binding IsConnected, Converter={StaticResource BoolToLightIndicatorConverter}}" Margin="0,0,8,0"/>
+                            <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#666666"/>
+                        </StackPanel>
+                        <TextBlock FontSize="12" Foreground="#888888" Margin="16,0,0,0">
+                            <Run Text="Host "/>
+                            <Run Text="{Binding ServerIp}" Foreground="#2196F3"/>
+                            <Run Text=" : "/>
+                            <Run Text="{Binding ServerPort}" Foreground="#2196F3"/>
+                            <Run Text=" → Device "/>
+                            <Run Text="{Binding DeviceIp}" Foreground="#4CAF50"/>
+                            <Run Text=" : "/>
+                            <Run Text="{Binding DevicePort}" Foreground="#4CAF50"/>
+                        </TextBlock>
+                    </StackPanel>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="✓ 連接"
+                            Command="{Binding ConnectCommand}"
+                            Width="110" Height="40"
+                            IsEnabled="{Binding IsConnected, Converter={StaticResource InverseBoolConverter}}"
+                            Background="#4CAF50" Foreground="White" FontWeight="Bold"
+                            BorderThickness="0" Cursor="Hand"/>
+                    <Button Content="✕ 斷開"
+                            Command="{Binding DisconnectCommand}"
+                            Width="110" Height="40"
+                            Margin="12,0,0,0"
+                            IsEnabled="{Binding IsConnected}"
+                            Background="#F44336" Foreground="White" FontWeight="Bold"
+                            BorderThickness="0" Cursor="Hand"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Content -->
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="18"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Left Column: Channel Controls -->
+            <StackPanel Grid.Column="0">
+                <GroupBox Header="📊 全局控制" Padding="16" Margin="0,0,0,16" Background="White" BorderBrush="#E0E0E0">
+                    <StackPanel>
+                        <TextBlock Text="快速控制 8 通道亮度與開關" FontSize="12" Foreground="#777777" Margin="0,0,0,12"/>
+                        <UniformGrid Columns="3" Rows="1" Margin="0,0,0,0" HorizontalAlignment="Stretch">
+                            <Button Content="💡 全部開啟" Command="{Binding TurnAllOnCommand}" Margin="0,0,4,0" IsEnabled="{Binding IsConnected}" Background="#4CAF50" Foreground="White" FontWeight="Bold" Padding="10" Height="36" BorderThickness="0" Cursor="Hand"/>
+                            <Button Content="🌙 全部關閉" Command="{Binding TurnAllOffCommand}" Margin="4,0,4,0" IsEnabled="{Binding IsConnected}" Background="#FF5722" Foreground="White" FontWeight="Bold" Padding="10" Height="36" BorderThickness="0" Cursor="Hand"/>
+                            <Button Content="🔄 立即輪詢" Command="{Binding RefreshStateCommand}" Margin="4,0,0,0" IsEnabled="{Binding IsConnected}" Background="#2196F3" Foreground="White" FontWeight="Bold" Padding="10" Height="36" BorderThickness="0" Cursor="Hand"/>
+                        </UniformGrid>
+                    </StackPanel>
+                </GroupBox>
+
+                <TextBlock Text="🎛️ 通道控制 (亮度 0~255)" FontSize="14" FontWeight="Bold" Foreground="#333333" Margin="0,0,0,12"/>
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding Channels}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="White" Margin="0,0,0,12" CornerRadius="6" Padding="16" BorderBrush="#E0E0E0" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <Grid Grid.Row="0" Margin="0,0,0,12">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock FontSize="14" FontWeight="Bold" Foreground="#333333">
+                                                <Run Text="通道 "/>
+                                                <Run Text="{Binding ChannelNumber}" Foreground="#2196F3"/>
+                                            </TextBlock>
+                                            <Ellipse Grid.Column="1" Width="14" Height="14" Fill="{Binding IsOn, Converter={StaticResource BoolToLightIndicatorConverter}}" Stroke="#DDDDDD" StrokeThickness="1"/>
+                                        </Grid>
+
+                                        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,12">
+                                            <Button Content="開啟" Command="{Binding TurnOnCommand}" Width="70" Height="32" Background="#4CAF50" Foreground="White" BorderThickness="0" Cursor="Hand"/>
+                                            <Button Content="關閉" Command="{Binding TurnOffCommand}" Width="70" Height="32" Background="#FF5722" Foreground="White" Margin="8,0,0,0" BorderThickness="0" Cursor="Hand"/>
+                                        </StackPanel>
+
+                                        <Grid Grid.Row="2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="70"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0" Text="亮度:" VerticalAlignment="Center" Margin="0,0,12,0" FontSize="12" Foreground="#666666"/>
+                                            <Slider Grid.Column="1"
+                                                    Minimum="0" Maximum="255"
+                                                    Value="{Binding Intensity, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                    IsEnabled="{Binding DataContext.IsConnected, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    TickFrequency="5" IsSnapToTickEnabled="True"
+                                                    Foreground="#2196F3"/>
+                                            <TextBlock Grid.Column="2" Text="{Binding Intensity}" FontWeight="Bold" Foreground="#2196F3" HorizontalAlignment="Right" VerticalAlignment="Center" FontSize="14"/>
+                                        </Grid>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </StackPanel>
+
+            <!-- Right Column: Device Info & Diagnostics -->
+            <StackPanel Grid.Column="2">
+                <GroupBox Header="📡 連線狀態 / 裝置資訊" Padding="16" Margin="0,0,0,16" Background="White" BorderBrush="#E0E0E0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="設備 IP" FontWeight="Bold" Margin="0,0,12,8" Foreground="#555555"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding DeviceIp}" Foreground="#4CAF50"/>
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Gateway" FontWeight="Bold" Margin="0,0,12,8" Foreground="#555555"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding GatewayIp}" Foreground="#4CAF50"/>
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Port" FontWeight="Bold" Margin="0,0,12,8" Foreground="#555555"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding DevicePort}" Foreground="#555555"/>
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="版本 / SN" FontWeight="Bold" Margin="0,0,12,8" Foreground="#555555"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" Foreground="#555555">
+                            <Run Text="{Binding DeviceVersion}"/>
+                            <Run Text="  |  "/>
+                            <Run Text="{Binding DeviceSerial}"/>
+                        </TextBlock>
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="通道數" FontWeight="Bold" Margin="0,0,12,0" Foreground="#555555"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ChannelCount}" Foreground="#2196F3" FontWeight="Bold"/>
+                    </Grid>
+                </GroupBox>
+
+                <GroupBox Header="🩺 診斷 / 事件日誌" Padding="0" Background="White" BorderBrush="#E0E0E0">
+                    <ListBox ItemsSource="{Binding DiagnosticLog}" BorderThickness="0" Height="340" Background="#FAFAFA">
+                        <ListBox.ItemContainerStyle>
+                            <Style TargetType="ListBoxItem">
+                                <Setter Property="Padding" Value="12,6"/>
+                                <Setter Property="FontFamily" Value="Consolas"/>
+                                <Setter Property="FontSize" Value="11"/>
+                                <Setter Property="Foreground" Value="#555555"/>
+                            </Style>
+                        </ListBox.ItemContainerStyle>
+                    </ListBox>
+                </GroupBox>
+            </StackPanel>
+        </Grid>
+
+        <!-- Footer -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="20">
+            <TextBlock TextWrapping="Wrap" FontSize="11" Foreground="#777777">
+                <Run Text="ASCII 協定：設備主動撥入 192.168.1.90:8000。"/>
+                <Run Text="命令格式：$ + 命令(1) + 通道(1) + 資料(3位HEX) + XOR(2)。"/>
+                <LineBreak/>
+                <Run Text="命令：1=開、2=關、3=設定亮度、4=讀取亮度、5=全開、6=全關。"/>
+            </TextBlock>
+        </Border>
+    </Grid>
+</Window>

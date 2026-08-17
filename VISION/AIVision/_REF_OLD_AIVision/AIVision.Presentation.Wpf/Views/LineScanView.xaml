@@ -1,0 +1,614 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.LineScanView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        xmlns:converters="clr-namespace:AIVision.Presentation.Wpf.Converters"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:LineScanViewModel}"
+        Title="Line Scan 控制面板"
+        Width="1200" Height="800"
+        MinWidth="900" MinHeight="600"
+        WindowStartupLocation="CenterOwner"
+        Background="#FF1E1E1E">
+
+    <Window.Resources>
+        <!-- Converters -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <converters:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+        <converters:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#FFCCCCCC"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,8,0"/>
+        </Style>
+        <Style x:Key="InputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="#FF2D2D2D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF3D3D3D"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0,4"/>
+        </Style>
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#FF3D3D3D"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#FF4D4D4D"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="Margin" Value="4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
+            <Setter Property="Background" Value="#FF0078D4"/>
+            <Setter Property="BorderBrush" Value="#FF1E90FF"/>
+        </Style>
+        <Style x:Key="DangerButtonStyle" TargetType="Button" BasedOn="{StaticResource ButtonStyle}">
+            <Setter Property="Background" Value="#FFD32F2F"/>
+            <Setter Property="BorderBrush" Value="#FFEF5350"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 標題列 -->
+        <TextBlock Grid.Row="0"
+                   Text="Line Scan 控制面板"
+                   FontSize="24"
+                   FontWeight="Bold"
+                   Foreground="White"
+                   Margin="0,0,0,16"/>
+
+        <!-- 主內容區 -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="320"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- 左側: 影像預覽 -->
+            <Border Grid.Column="0"
+                    Background="#FF101010"
+                    CornerRadius="8"
+                    Padding="8">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- 影像 -->
+                    <Image x:Name="PreviewImage"
+                           Grid.Row="0"
+                           Source="{Binding PreviewBitmap}"
+                           Stretch="Uniform"
+                           RenderOptions.BitmapScalingMode="NearestNeighbor"
+                           MouseMove="PreviewImage_MouseMove"
+                           MouseLeave="PreviewImage_MouseLeave"/>
+
+                    <!-- 無影像提示 -->
+                    <TextBlock Grid.Row="0"
+                               Text="請點擊「擷取預覽」按鈕取得影像"
+                               Foreground="#FF888888"
+                               FontSize="16"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding PreviewBitmap}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+
+                    <!-- 滑鼠座標顯示 -->
+                    <Border Grid.Row="1"
+                            Background="#CC000000"
+                            CornerRadius="4"
+                            Padding="12,6"
+                            HorizontalAlignment="Left"
+                            Margin="0,8,0,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="座標: "
+                                       Foreground="#FFAAAAAA"
+                                       FontFamily="Consolas"
+                                       FontSize="14"/>
+                            <TextBlock Text="{Binding MouseCoordinateText}"
+                                       Foreground="White"
+                                       FontFamily="Consolas"
+                                       FontSize="14"
+                                       FontWeight="Bold"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <GridSplitter Grid.Column="1" Width="8" Background="Transparent"/>
+
+            <!-- 右側: 控制面板 -->
+            <Border Grid.Column="2"
+                    Background="#FF252525"
+                    CornerRadius="8"
+                    Padding="16">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- 模式切換區 -->
+                        <TextBlock Text="操作模式"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   Margin="0,0,0,12"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <RadioButton Content="相機模式"
+                                         IsChecked="{Binding IsSimulationMode, Converter={StaticResource InverseBoolConverter}}"
+                                         Foreground="White"
+                                         Margin="0,0,16,0"
+                                         GroupName="OperationMode"/>
+                            <RadioButton Content="模擬模式"
+                                         IsChecked="{Binding IsSimulationMode}"
+                                         Foreground="White"
+                                         GroupName="OperationMode"/>
+                        </StackPanel>
+
+                        <Separator Margin="0,8,0,16" Background="#FF3D3D3D"/>
+
+                        <!-- 相機模式設定區 -->
+                        <StackPanel Visibility="{Binding IsSimulationMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                            <!-- ROI 設定區 -->
+                            <TextBlock Text="ROI 設定"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       Margin="0,0,0,12"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="起始 X:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="0" Grid.Column="1"
+                                         Text="{Binding OffsetX, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="1" Text="起始 Y:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="1" Grid.Column="1"
+                                         Text="{Binding OffsetY, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="2" Text="寬度:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="2" Grid.Column="1"
+                                         Text="{Binding Width, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+                            </Grid>
+
+                            <!-- 感測器資訊 -->
+                            <Border Background="#FF1A1A1A"
+                                    CornerRadius="4"
+                                    Padding="8"
+                                    Margin="0,8,0,0">
+                                <TextBlock Foreground="#FF888888" FontSize="11">
+                                    <Run Text="感測器: "/>
+                                    <Run Text="{Binding SensorWidth, Mode=OneWay}"/>
+                                    <Run Text=" x "/>
+                                    <Run Text="{Binding SensorHeight, Mode=OneWay}"/>
+                                </TextBlock>
+                            </Border>
+
+                            <Separator Margin="0,16" Background="#FF3D3D3D"/>
+
+                            <!-- 掃描設定區 -->
+                            <TextBlock Text="掃描設定"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       Margin="0,0,0,12"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="目標高度:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="0" Grid.Column="1"
+                                         Text="{Binding TargetHeight, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="1" Text="線掃頻率 (Hz):" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="1" Grid.Column="1"
+                                         Text="{Binding LineRate, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+                            </Grid>
+
+                            <!-- 輸出圖像預估 -->
+                            <Border Background="#FF1A1A1A"
+                                    CornerRadius="4"
+                                    Padding="8"
+                                    Margin="0,8,0,0">
+                                <TextBlock Foreground="#FF888888" FontSize="11">
+                                    <Run Text="輸出圖像: "/>
+                                    <Run Text="{Binding Width, Mode=OneWay}"/>
+                                    <Run Text=" x "/>
+                                    <Run Text="{Binding TargetHeight, Mode=OneWay}"/>
+                                    <Run Text=" px"/>
+                                </TextBlock>
+                            </Border>
+
+                            <Separator Margin="0,16" Background="#FF3D3D3D"/>
+
+                            <!-- 相機參數區 -->
+                            <TextBlock Text="相機參數"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       Margin="0,0,0,12"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="UserSet:" Style="{StaticResource LabelStyle}"/>
+                                <ComboBox Grid.Row="0" Grid.Column="1"
+                                          ItemsSource="{Binding AvailableUserSets}"
+                                          SelectedItem="{Binding SelectedUserSet}"
+                                          Style="{StaticResource LightComboBoxStyle}"
+                                          Margin="0,4"/>
+
+                                <TextBlock Grid.Row="1" Text="曝光時間 (µs):" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="1" Grid.Column="1"
+                                         Text="{Binding ExposureTime, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="2" Text="增益:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="2" Grid.Column="1"
+                                         Text="{Binding Gain, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="3" Text="最大高度:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="3" Grid.Column="1"
+                                         Text="{Binding HeightMax}"
+                                         Style="{StaticResource InputStyle}"
+                                         IsReadOnly="True"
+                                         Background="#FF1A1A1A"/>
+                            </Grid>
+
+                            <!-- 曝光/增益範圍資訊 -->
+                            <Border Background="#FF1A1A1A"
+                                    CornerRadius="4"
+                                    Padding="8"
+                                    Margin="0,8,0,0">
+                                <StackPanel>
+                                    <TextBlock Foreground="#FF888888" FontSize="11">
+                                        <Run Text="曝光範圍: "/>
+                                        <Run Text="{Binding ExposureTimeMin, StringFormat=F0, Mode=OneWay}"/>
+                                        <Run Text=" ~ "/>
+                                        <Run Text="{Binding ExposureTimeMax, StringFormat=F0, Mode=OneWay}"/>
+                                        <Run Text=" µs"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="#FF888888" FontSize="11" Margin="0,2,0,0">
+                                        <Run Text="增益範圍: "/>
+                                        <Run Text="{Binding GainMin, StringFormat=F1, Mode=OneWay}"/>
+                                        <Run Text=" ~ "/>
+                                        <Run Text="{Binding GainMax, StringFormat=F1, Mode=OneWay}"/>
+                                    </TextBlock>
+                                    <TextBlock Foreground="#FF888888" FontSize="11" Margin="0,2,0,0">
+                                        <Run Text="行頻範圍: "/>
+                                        <Run Text="{Binding LineRateMin, StringFormat=F0, Mode=OneWay}"/>
+                                        <Run Text=" ~ "/>
+                                        <Run Text="{Binding LineRateMax, StringFormat=F0, Mode=OneWay}"/>
+                                        <Run Text=" Hz"/>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- 套用參數按鈕 -->
+                            <Button Content="套用參數"
+                                    Command="{Binding ApplyCameraParametersCommand}"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,12,0,0"/>
+
+                            <Separator Margin="0,16" Background="#FF3D3D3D"/>
+
+                            <!-- 設定儲存/載入 -->
+                            <TextBlock Text="設定管理"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       Margin="0,0,0,12"/>
+
+                            <StackPanel Orientation="Horizontal">
+                                <Button Content="儲存設定"
+                                        Command="{Binding SaveSettingsCommand}"
+                                        Style="{StaticResource ButtonStyle}"
+                                        Width="100"/>
+                                <Button Content="載入設定"
+                                        Command="{Binding LoadSettingsCommand}"
+                                        Style="{StaticResource ButtonStyle}"
+                                        Width="100"/>
+                            </StackPanel>
+
+                            <Border Background="#FF1A1A1A"
+                                    CornerRadius="4"
+                                    Padding="8"
+                                    Margin="0,8,0,0">
+                                <TextBlock Foreground="#FF666666" FontSize="10" TextWrapping="Wrap">
+                                    設定會儲存至 linescan-settings.json，下次開啟時自動載入
+                                </TextBlock>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- 模擬模式設定區 -->
+                        <StackPanel Visibility="{Binding IsSimulationMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <!-- 來源圖片設定 -->
+                            <TextBlock Text="來源圖片"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       Margin="0,0,0,12"/>
+
+                            <Button Content="載入圖片..."
+                                    Command="{Binding LoadSimulatorImageCommand}"
+                                    Style="{StaticResource ButtonStyle}"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,0,0,8"/>
+
+                            <!-- 來源圖片預覽 -->
+                            <Border Background="#FF101010"
+                                    CornerRadius="4"
+                                    Height="120"
+                                    Margin="0,0,0,8">
+                                <Grid>
+                                    <Image Source="{Binding SimulatorSourcePreview}"
+                                           Stretch="Uniform"
+                                           RenderOptions.BitmapScalingMode="NearestNeighbor"/>
+                                    <TextBlock Text="請載入來源圖片"
+                                               Foreground="#FF666666"
+                                               HorizontalAlignment="Center"
+                                               VerticalAlignment="Center"
+                                               FontSize="12">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Visibility" Value="Collapsed"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding SimulatorSourcePreview}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </Grid>
+                            </Border>
+
+                            <!-- 來源圖片資訊 -->
+                            <Border Background="#FF1A1A1A"
+                                    CornerRadius="4"
+                                    Padding="8"
+                                    Margin="0,0,0,0">
+                                <TextBlock Foreground="#FF888888" FontSize="11">
+                                    <Run Text="來源: "/>
+                                    <Run Text="{Binding SimulatorSourceInfo, Mode=OneWay}"/>
+                                </TextBlock>
+                            </Border>
+
+                            <Separator Margin="0,16" Background="#FF3D3D3D"/>
+
+                            <!-- 模擬 ROI 設定 -->
+                            <TextBlock Text="模擬 ROI 設定"
+                                       FontSize="16"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"
+                                       Margin="0,0,0,12"/>
+
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Text="Anchor X:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="0" Grid.Column="1"
+                                         Text="{Binding SimulatorAnchorX, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="1" Text="Anchor Y:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="1" Grid.Column="1"
+                                         Text="{Binding SimulatorAnchorY, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="2" Text="掃描寬度:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="2" Grid.Column="1"
+                                         Text="{Binding SimulatorScanWidth, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="3" Text="掃描高度:" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="3" Grid.Column="1"
+                                         Text="{Binding SimulatorScanHeight, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+
+                                <TextBlock Grid.Row="4" Text="行頻 (Hz):" Style="{StaticResource LabelStyle}"/>
+                                <TextBox Grid.Row="4" Grid.Column="1"
+                                         Text="{Binding SimulatorLineRate, UpdateSourceTrigger=PropertyChanged}"
+                                         Style="{StaticResource InputStyle}"/>
+                            </Grid>
+
+                            <!-- 時序模擬開關 -->
+                            <CheckBox Content="啟用時序模擬"
+                                      IsChecked="{Binding SimulatorEnableTiming}"
+                                      Foreground="White"
+                                      Margin="0,8,0,0"/>
+
+                            <!-- 輸出預估 -->
+                            <Border Background="#FF1A1A1A"
+                                    CornerRadius="4"
+                                    Padding="8"
+                                    Margin="0,8,0,0">
+                                <TextBlock Foreground="#FF888888" FontSize="11">
+                                    <Run Text="輸出: "/>
+                                    <Run Text="{Binding SimulatorScanWidth, Mode=OneWay}"/>
+                                    <Run Text=" x "/>
+                                    <Run Text="{Binding SimulatorScanHeight, Mode=OneWay}"/>
+                                    <Run Text=" px"/>
+                                </TextBlock>
+                            </Border>
+                        </StackPanel>
+
+                        <Separator Margin="0,16" Background="#FF3D3D3D"/>
+
+                        <!-- 結果影像 (兩種模式共用) -->
+                        <TextBlock Text="最新完成圖像"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"
+                                   Margin="0,0,0,12"/>
+
+                        <Border Background="#FF101010"
+                                CornerRadius="4"
+                                Height="150">
+                            <Image Source="{Binding ResultBitmap}"
+                                   Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality"/>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
+        <!-- 控制按鈕區 -->
+        <Border Grid.Row="2"
+                Background="#FF252525"
+                CornerRadius="8"
+                Padding="16"
+                Margin="0,16,0,0">
+            <Grid>
+                <!-- 相機模式按鈕 -->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Visibility="{Binding IsSimulationMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <Button Content="擷取預覽"
+                            Command="{Binding CapturePreviewCommand}"
+                            Style="{StaticResource ButtonStyle}"
+                            Width="120"/>
+                    <Button Content="開始掃描"
+                            Command="{Binding StartScanCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Width="120"/>
+                    <Button Content="停止掃描"
+                            Command="{Binding StopScanCommand}"
+                            Style="{StaticResource DangerButtonStyle}"
+                            Width="120"/>
+                </StackPanel>
+
+                <!-- 模擬模式按鈕 -->
+                <StackPanel Orientation="Horizontal"
+                            HorizontalAlignment="Center"
+                            Visibility="{Binding IsSimulationMode, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <Button Content="開始模擬"
+                            Command="{Binding StartSimulationCommand}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Width="100"/>
+                    <Button Content="暫停"
+                            Command="{Binding PauseSimulationCommand}"
+                            Style="{StaticResource ButtonStyle}"
+                            Width="80"/>
+                    <Button Content="繼續"
+                            Command="{Binding ResumeSimulationCommand}"
+                            Style="{StaticResource ButtonStyle}"
+                            Width="80"/>
+                    <Button Content="停止模擬"
+                            Command="{Binding StopSimulationCommand}"
+                            Style="{StaticResource DangerButtonStyle}"
+                            Width="100"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- 狀態列 -->
+        <Border Grid.Row="3"
+                Background="#FF252525"
+                CornerRadius="8"
+                Padding="16"
+                Margin="0,8,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 左側: 進度 -->
+                <StackPanel Grid.Column="0">
+                    <ProgressBar Value="{Binding ScanProgress}"
+                                 Maximum="100"
+                                 Height="16"
+                                 Background="#FF3D3D3D"
+                                 Foreground="#FF0078D4"
+                                 Margin="0,0,0,8"/>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="進度: "
+                                   Foreground="#FFAAAAAA"
+                                   FontSize="12"/>
+                        <TextBlock Text="{Binding ProgressText}"
+                                   Foreground="White"
+                                   FontWeight="SemiBold"
+                                   FontSize="12"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- 右側: 統計 -->
+                <StackPanel Grid.Column="1"
+                            HorizontalAlignment="Right"
+                            Margin="24,0,0,0">
+                    <TextBlock Text="{Binding StatusMessage}"
+                               Foreground="White"
+                               FontSize="13"
+                               TextWrapping="Wrap"
+                               MaxWidth="400"/>
+                    <TextBlock Foreground="#FFAAAAAA" FontSize="12" Margin="0,4,0,0">
+                        <Run Text="已完成: "/>
+                        <Run Text="{Binding CompletedImages}" FontWeight="Bold" Foreground="White"/>
+                        <Run Text=" 張"/>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

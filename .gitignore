@@ -1,0 +1,106 @@
+# ============================================================
+# AIVision / 精華影驗  —  .gitignore
+# 原則：只進原始碼與文件；資料集、模型權重、建置產物、壓縮包一律不進。
+# ============================================================
+
+# ---------- 資料集（8.6GB / 5.5萬檔，絕對不上） ----------
+VISION/AIVision/母模_有鏡片+無戒環/
+VISION/AIVision/母模_無鏡片+無戒環/
+VISION/AIVision/2026_06_05_yolo模號穴號/
+VISION/AIVision/隱眼專案/
+
+# ---------- 暫存 / 產出目錄 ----------
+_build_tmp/
+_share_tmp/
+report_export/
+父子節點POC/dist/
+父子節點POC/build/
+# POC 跨機實驗的接收產物（13MB 執行時輸出，可重跑產生）；事件 log 保留
+父子節點POC/_recv_out/
+
+# ---------- 原生 SDK 二進位（走廠商安裝，不進版控） ----------
+VISION/AIVision/AIVision/libs/
+
+# ---------- .NET 建置產物 ----------
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+bld/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+publish/
+[Ll]og/
+[Ll]ogs/
+build.log
+
+# ---------- Visual Studio / Rider ----------
+.vs/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.sln.iml
+*.rsuser
+*.DotSettings.user
+
+# ---------- NuGet ----------
+*.nupkg
+*.snupkg
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# ---------- 測試結果 ----------
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+
+# ---------- Python ----------
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# ---------- 壓縮包 / 安裝檔 / 二進位 ----------
+*.7z
+*.zip
+*.rar
+*.tar
+*.tar.gz
+*.exe
+*.msi
+*.whl
+*.pkg
+*.aar
+*.dll
+*.so
+*.dylib
+*.pyd
+*.lib
+*.pdb
+*.xcframework.zip
+
+# ---------- 模型權重（走模型中樞 D:\AIVisionModels，不進 repo） ----------
+*.onnx
+*.pt
+*.pth
+*.engine
+*.caffemodel
+
+# ---------- 作業系統 ----------
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+nul
+.DS_Store

@@ -1,0 +1,516 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.ModelEditView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        xmlns:converters="clr-namespace:AIVision.Presentation.Wpf.Converters"
+        xmlns:models="clr-namespace:AIVision.Presentation.Wpf.Models"
+        mc:Ignorable="d"
+        Title="模型編輯"
+        Width="650"
+        Height="950"
+        WindowStartupLocation="CenterOwner"
+        Background="White"
+        ResizeMode="NoResize"
+        d:DataContext="{d:DesignInstance vm:ModelEditViewModel, IsDesignTimeCreatable=False}">
+    <Window.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:BooleanToTitleConverter x:Key="BooleanToTitleConverter" />
+        <converters:ModelTypeConverter x:Key="ModelTypeConverter" />
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 標題 -->
+        <TextBlock Grid.Row="0"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   Margin="0,0,0,24">
+            <TextBlock.Text>
+                <Binding Path="IsEditMode">
+                    <Binding.Converter>
+                        <converters:BooleanToTitleConverter />
+                    </Binding.Converter>
+                    <Binding.ConverterParameter>編輯模型|新增模型</Binding.ConverterParameter>
+                </Binding>
+            </TextBlock.Text>
+        </TextBlock>
+
+        <!-- 表單 -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- 模型名稱 -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="模型名稱 *" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                             FontSize="14" 
+                             Padding="8,6" />
+                </StackPanel>
+
+                <!-- 描述 -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="描述" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" 
+                             FontSize="14" 
+                             Padding="8,6" 
+                             TextWrapping="Wrap" 
+                             AcceptsReturn="True" 
+                             Height="60" 
+                             VerticalScrollBarVisibility="Auto" />
+                </StackPanel>
+
+                <!-- EdgeHub IP -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="EdgeHub IP *" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding EdgeHubHost, UpdateSourceTrigger=PropertyChanged}" 
+                             FontSize="14" 
+                             Padding="8,6" />
+                </StackPanel>
+
+                <!-- EdgeHub Port -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="EdgeHub Port *" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBox Text="{Binding EdgeHubPort, UpdateSourceTrigger=PropertyChanged}" 
+                             FontSize="14" 
+                             Padding="8,6" />
+                </StackPanel>
+
+                <!-- 推論類型選擇 -->
+                <StackPanel Margin="0,0,0,16">
+                    <TextBlock Text="推論類型 *" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <Border BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="4" Padding="12">
+                        <StackPanel>
+                            <RadioButton Content="單一模型 (inference API)"
+                                         IsChecked="{Binding IsSingleModelMode, Mode=OneWay}"
+                                         Checked="SingleModelRadio_Checked"
+                                         Margin="0,0,0,8"
+                                         FontSize="14"
+                                         GroupName="InferenceType" />
+                            <RadioButton Content="Workflow (多步驟流程)"
+                                         IsChecked="{Binding IsWorkflowMode, Mode=OneWay}"
+                                         Checked="WorkflowRadio_Checked"
+                                         FontSize="14"
+                                         GroupName="InferenceType" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- 單一模型設定區塊 -->
+                <StackPanel Visibility="{Binding IsSingleModelMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <!-- UUID -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="UUID *" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding Uuid, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14"
+                                 Padding="8,6" />
+                        <TextBlock Text="通常固定為 'model'"
+                                   FontSize="12"
+                                   Foreground="#666666"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <!-- 模型路徑 -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="模型路徑 *" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding ModelPath, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14"
+                                 Padding="8,6"
+                                 TextWrapping="Wrap"
+                                 AcceptsReturn="True"
+                                 Height="60"
+                                 VerticalScrollBarVisibility="Auto" />
+                        <TextBlock Text="例如: /home/smasoft/Public/ainavi_edgehub/models/Ecoco_cls_251103"
+                                   FontSize="12"
+                                   Foreground="#666666"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <!-- 推論 Port -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="推論 Port *" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding InferencePort, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="14"
+                                 Padding="8,6" />
+                        <TextBlock Text="推論時使用的 Port，例如: 8001"
+                                   FontSize="12"
+                                   Foreground="#666666"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <!-- 模型類型 -->
+                    <StackPanel Margin="0,0,0,16">
+                        <TextBlock Text="模型類型 *" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                        <ComboBox SelectedItem="{Binding ModelType, UpdateSourceTrigger=PropertyChanged}"
+                                  ItemContainerStyle="{StaticResource ComboBoxItemStyle}"
+                                  FontSize="14"
+                                  Padding="8,6">
+                            <ComboBox.ItemsSource>
+                                <x:Array Type="{x:Type models:ModelType}">
+                                    <models:ModelType>Classification</models:ModelType>
+                                    <models:ModelType>Detection</models:ModelType>
+                                </x:Array>
+                            </ComboBox.ItemsSource>
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock>
+                                        <TextBlock.Text>
+                                            <Binding>
+                                                <Binding.Converter>
+                                                    <converters:ModelTypeConverter />
+                                                </Binding.Converter>
+                                            </Binding>
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock Text="選擇模型類型：分類（Classification）或檢測（Detection）"
+                                   FontSize="12"
+                                   Foreground="#666666"
+                                   Margin="0,4,0,0" />
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- Workflow 設定區塊 -->
+                <StackPanel Visibility="{Binding IsWorkflowMode, Converter={StaticResource BooleanToVisibilityConverter}}">
+                    <Border BorderBrush="#FFA726" Background="#FFF8E1" BorderThickness="1" CornerRadius="4" Padding="12" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="Workflow 設定" FontSize="14" FontWeight="SemiBold" Foreground="#F57C00" Margin="0,0,0,8" />
+
+                            <!-- Workflow 設定檔路徑 -->
+                            <StackPanel Margin="0,0,0,12">
+                                <TextBlock Text="設定檔路徑 *" FontSize="13" Margin="0,0,0,4" />
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0"
+                                             Text="{Binding WorkflowSettingPath, UpdateSourceTrigger=PropertyChanged}"
+                                             FontSize="13"
+                                             Padding="8,6"
+                                             Margin="0,0,8,0" />
+                                    <Button Grid.Column="1"
+                                            Content="瀏覽..."
+                                            Command="{Binding BrowseWorkflowSettingCommand}"
+                                            Padding="12,6"
+                                            FontSize="13" />
+                                </Grid>
+                                <TextBlock Text="例如: C:\Users\Public\Documents\Spingence\AINavi\workflows\myflow\workflow_setting.json"
+                                           FontSize="11"
+                                           Foreground="#666666"
+                                           TextWrapping="Wrap"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+
+                            <!-- Workflow Port -->
+                            <StackPanel>
+                                <TextBlock Text="Workflow Port *" FontSize="13" Margin="0,0,0,4" />
+                                <TextBox Text="{Binding WorkflowPort, UpdateSourceTrigger=PropertyChanged}"
+                                         FontSize="13"
+                                         Padding="8,6"
+                                         Width="120"
+                                         HorizontalAlignment="Left" />
+                                <TextBlock Text="Workflow 推論服務 Port，例如: 8100"
+                                           FontSize="11"
+                                           Foreground="#666666"
+                                           Margin="0,4,0,0" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- 結果類型編輯區域 -->
+                <StackPanel Margin="0,8,0,16">
+                    <TextBlock Text="結果類型" FontSize="14" FontWeight="SemiBold" Margin="0,0,0,6" />
+                    <TextBlock Text="定義此模型可能產生的檢測結果類型（如瑕疵分類）"
+                               FontSize="12"
+                               Foreground="#666666"
+                               Margin="0,0,0,12" />
+
+                    <!-- 結果類型列表 -->
+                    <Border BorderBrush="#E0E0E0"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            MinHeight="120"
+                            MaxHeight="180">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <!-- 列表 -->
+                            <ListBox Grid.Column="0"
+                                     ItemsSource="{Binding ResultTypes}"
+                                     SelectedItem="{Binding SelectedResultType}"
+                                     BorderThickness="0"
+                                     ScrollViewer.VerticalScrollBarVisibility="Auto">
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Margin="4,2">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="120" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- 類型名稱 -->
+                                            <TextBox Grid.Column="0"
+                                                     Text="{Binding TypeName, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="13"
+                                                     Padding="6,4"
+                                                     Margin="0,0,8,0" />
+
+                                            <TextBlock Grid.Column="1"
+                                                       Text="→"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="#666666"
+                                                       Margin="0,0,8,0" />
+
+                                            <!-- 顯示名稱 -->
+                                            <TextBox Grid.Column="2"
+                                                     Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}"
+                                                     FontSize="13"
+                                                     Padding="6,4" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
+
+                            <!-- 操作按鈕 -->
+                            <StackPanel Grid.Column="1" Margin="8,4">
+                                <Button Content="▲"
+                                        Command="{Binding MoveResultTypeUpCommand}"
+                                        Width="28" Height="28"
+                                        Margin="0,2"
+                                        ToolTip="上移" />
+                                <Button Content="▼"
+                                        Command="{Binding MoveResultTypeDownCommand}"
+                                        Width="28" Height="28"
+                                        Margin="0,2"
+                                        ToolTip="下移" />
+                                <Button Content="✕"
+                                        Command="{Binding RemoveResultTypeCommand}"
+                                        Width="28" Height="28"
+                                        Margin="0,8,0,2"
+                                        ToolTip="刪除"
+                                        Foreground="#F44336" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- 新增結果類型 -->
+                    <Grid Margin="0,12,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0"
+                                 Text="{Binding NewResultTypeName, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="13"
+                                 Padding="8,6"
+                                 Margin="0,0,8,0">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <VisualBrush Stretch="None" AlignmentX="Left">
+                                                        <VisualBrush.Visual>
+                                                            <TextBlock Text="類型名稱 (如: scratch)"
+                                                                       Foreground="#999999"
+                                                                       Margin="8,6,0,0" />
+                                                        </VisualBrush.Visual>
+                                                    </VisualBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <TextBox Grid.Column="1"
+                                 Text="{Binding NewResultTypeDisplayName, UpdateSourceTrigger=PropertyChanged}"
+                                 FontSize="13"
+                                 Padding="8,6"
+                                 Margin="0,0,8,0">
+                            <TextBox.Style>
+                                <Style TargetType="TextBox">
+                                    <Style.Triggers>
+                                        <Trigger Property="Text" Value="">
+                                            <Setter Property="Background">
+                                                <Setter.Value>
+                                                    <VisualBrush Stretch="None" AlignmentX="Left">
+                                                        <VisualBrush.Visual>
+                                                            <TextBlock Text="顯示名稱 (如: 刮痕)"
+                                                                       Foreground="#999999"
+                                                                       Margin="8,6,0,0" />
+                                                        </VisualBrush.Visual>
+                                                    </VisualBrush>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBox.Style>
+                        </TextBox>
+
+                        <Button Grid.Column="2"
+                                Content="+ 新增"
+                                Command="{Binding AddResultTypeCommand}"
+                                Padding="16,6"
+                                FontSize="13" />
+                    </Grid>
+
+                    <!-- 提示文字 -->
+                    <TextBlock Text="提示：類型名稱應與 AI 模型輸出一致，顯示名稱用於介面顯示"
+                               FontSize="11"
+                               Foreground="#999999"
+                               Margin="0,8,0,0" />
+                </StackPanel>
+
+                <!-- 瑕疵過濾設定區塊 -->
+                <StackPanel Margin="0,8,0,16">
+                    <Border BorderBrush="#4CAF50" Background="#E8F5E9" BorderThickness="1" CornerRadius="4" Padding="12">
+                        <StackPanel>
+                            <!-- 標題與啟用開關 -->
+                            <Grid Margin="0,0,0,12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
+                                    <TextBlock Text="瑕疵過濾設定" FontSize="14" FontWeight="SemiBold" Foreground="#2E7D32" />
+                                    <TextBlock Text="根據尺寸與距離規則過濾瑕疵判定"
+                                               FontSize="11"
+                                               Foreground="#666666"
+                                               Margin="0,2,0,0" />
+                                </StackPanel>
+                                <CheckBox Grid.Column="1"
+                                          Content="啟用過濾"
+                                          IsChecked="{Binding DefectFilteringEnabled}"
+                                          VerticalAlignment="Center"
+                                          FontSize="13" />
+                            </Grid>
+
+                            <!-- 過濾參數（只在啟用時顯示） -->
+                            <StackPanel Visibility="{Binding DefectFilteringEnabled, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <!-- 像素設定 -->
+                                <TextBlock Text="像素換算設定" FontSize="12" FontWeight="SemiBold" Foreground="#388E3C" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                        <TextBlock Text="像素面積 (mm²/px)" FontSize="11" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding PixelAreaMm2, UpdateSourceTrigger=LostFocus}"
+                                                 FontSize="12"
+                                                 Padding="6,4" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                        <TextBlock Text="像素邊長 (mm/px)" FontSize="11" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding PixelSizeMm, UpdateSourceTrigger=LostFocus}"
+                                                 FontSize="12"
+                                                 Padding="6,4" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- 面積閾值設定 -->
+                                <TextBlock Text="面積閾值設定" FontSize="12" FontWeight="SemiBold" Foreground="#388E3C" Margin="0,0,0,6" />
+                                <Grid Margin="0,0,0,12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                        <TextBlock Text="最小面積 (mm²) - 小於此值忽略" FontSize="11" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding MinimumAreaMm2, UpdateSourceTrigger=LostFocus}"
+                                                 FontSize="12"
+                                                 Padding="6,4" />
+                                    </StackPanel>
+                                    <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                        <TextBlock Text="大瑕疵閾值 (mm²) - 大於此值 NG" FontSize="11" Margin="0,0,0,2" />
+                                        <TextBox Text="{Binding MediumAreaMm2, UpdateSourceTrigger=LostFocus}"
+                                                 FontSize="12"
+                                                 Padding="6,4" />
+                                    </StackPanel>
+                                </Grid>
+
+                                <!-- 距離閾值設定 -->
+                                <TextBlock Text="距離閾值設定" FontSize="12" FontWeight="SemiBold" Foreground="#388E3C" Margin="0,0,0,6" />
+                                <StackPanel Margin="0,0,0,12">
+                                    <TextBlock Text="群聚距離 (mm) - 中等瑕疵間距小於此值判 NG" FontSize="11" Margin="0,0,0,2" />
+                                    <TextBox Text="{Binding CloseDistanceMm, UpdateSourceTrigger=LostFocus}"
+                                             FontSize="12"
+                                             Padding="6,4"
+                                             Width="150"
+                                             HorizontalAlignment="Left" />
+                                </StackPanel>
+
+                                <!-- 關鍵瑕疵類別 -->
+                                <TextBlock Text="關鍵瑕疵類別" FontSize="12" FontWeight="SemiBold" Foreground="#388E3C" Margin="0,0,0,6" />
+                                <StackPanel>
+                                    <TextBlock Text="這些類別無論大小都判定為 NG（多個用逗號分隔）" FontSize="11" Margin="0,0,0,2" />
+                                    <TextBox Text="{Binding CriticalClassesText, UpdateSourceTrigger=PropertyChanged}"
+                                             FontSize="12"
+                                             Padding="6,4" />
+                                    <TextBlock Text="例如: TF_crash, gouge, 摩擦面凸點"
+                                               FontSize="10"
+                                               Foreground="#888888"
+                                               Margin="0,2,0,0" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 錯誤訊息 -->
+        <Border Grid.Row="2"
+                Background="#FFEBEE"
+                BorderBrush="#F44336"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="12"
+                Margin="0,0,0,16"
+                Visibility="{Binding ErrorMessage, Converter={StaticResource NullToVisibilityConverter}}">
+            <TextBlock Text="{Binding ErrorMessage}" 
+                     Foreground="#C62828" 
+                     FontSize="14" 
+                     TextWrapping="Wrap" />
+        </Border>
+
+        <!-- 按鈕 -->
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right">
+            <Button Content="取消"
+                    Width="100"
+                    Padding="12,8"
+                    Margin="0,0,12,0"
+                    Command="{Binding CancelCommand}" />
+            <Button Content="儲存"
+                    Width="100"
+                    Padding="12,8"
+                    Background="#2196F3"
+                    Foreground="White"
+                    Command="{Binding SaveCommand}" />
+        </StackPanel>
+    </Grid>
+</Window>
+

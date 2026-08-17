@@ -1,0 +1,10 @@
+主控台
+start "" /D "d:\新增資料夾\VISION\AIVision\AIVision\AIVision.Presentation.Wpf\bin\Debug\net8.0-windows\win-x64" AIVision.exe
+
+edge端
+d:\新增資料夾\VISION\AIVision\AIVision\AIVision.EdgeSimulator\bin\Debug\net8.0-windows\EdgeSimulator.exe
+
+
+server端
+cd "d:\新增資料夾\VISION\AIVision\AIVision"
+dotnet run --project "AIVision.Api\AIVision.Api.csproj" -c Release

@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AIVision.Application\AIVision.Application.csproj" />
+    <ProjectReference Include="..\AIVision.Domain\AIVision.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.28" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="MvCamCtrl.NET">
+      <HintPath>..\libs\cameras\hikvision\x64\MvCamCtrl.Net.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="ids_peak_dotnet">
+      <HintPath>..\libs\cameras\IDS_PEAK\ids_peak_dotnet.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <None Include="..\libs\cameras\hikvision\x64\*.dll">
+      <Link>libs\hikvision\x64\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\libs\cameras\IDS_PEAK\*.dll">
+      <Link>libs\ids_peak\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

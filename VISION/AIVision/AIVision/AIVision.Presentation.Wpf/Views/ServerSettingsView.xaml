@@ -1,0 +1,81 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.ServerSettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="API 伺服器設定（中央推論）" Height="580" Width="680"
+        WindowStartupLocation="CenterOwner" Background="#1E1E1E" ResizeMode="NoResize">
+    <StackPanel Margin="16">
+        <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+            <TextBlock Text="目前使用：" Foreground="#9CDCFE" FontSize="13" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding CurrentBaseUrl, TargetNullValue='（未設定）'}"
+                       Foreground="White" FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+        </StackPanel>
+
+        <TextBlock Text="選擇或輸入 server 位址（例：http://192.168.1.50:5030）"
+                   Foreground="#D4D4D4" FontSize="12" Margin="0,0,0,4"/>
+        <WrapPanel>
+            <ComboBox IsEditable="True"
+                      ItemsSource="{Binding KnownServers}"
+                      Text="{Binding ServerUrl, UpdateSourceTrigger=PropertyChanged}"
+                      IsEnabled="{Binding NotTesting}"
+                      Width="360" VerticalAlignment="Center" Margin="0,0,10,0"
+                      ToolTip="下拉=已保存清單（可自建）；也可直接手填任意位址"/>
+            <Button Content="套用並測試連線" Command="{Binding ApplyAndTestCommand}"
+                    IsEnabled="{Binding NotTesting}" Padding="16,6" Margin="0,0,8,0"
+                    Background="#0E639C" Foreground="White" BorderThickness="0"/>
+            <Button Content="測連接埠" Command="{Binding CheckPortCommand}"
+                    IsEnabled="{Binding NotTesting}" Padding="12,6" Margin="0,0,8,0"
+                    Background="#3E3E42" Foreground="White" BorderThickness="0"
+                    ToolTip="純 TCP 探測（不打 HTTP、不改設定）：區分「服務沒開/防火牆」vs「服務開了但 API 壞了」"/>
+            <Button Content="加入清單" Command="{Binding AddServerCommand}"
+                    IsEnabled="{Binding NotTesting}" Padding="12,6" Margin="0,0,8,0"
+                    Background="#2D7D46" Foreground="White" BorderThickness="0"
+                    ToolTip="把上方輸入的位址存進清單（自建接口；存使用者設定檔，重啟仍在）"/>
+            <Button Content="從清單移除" Command="{Binding RemoveServerCommand}"
+                    IsEnabled="{Binding NotTesting}" Padding="12,6"
+                    Background="#A1260D" Foreground="White" BorderThickness="0"
+                    ToolTip="把上方位址從清單移除（不影響目前生效位址）"/>
+        </WrapPanel>
+
+        <Border Background="#1B1B1B" CornerRadius="4" Padding="10" Margin="0,12,0,0" MinHeight="84">
+            <TextBlock Text="{Binding TestResult, TargetNullValue='（尚未測試）'}"
+                       Foreground="#4EC9B0" TextWrapping="Wrap" FontSize="13" FontFamily="Consolas"/>
+        </Border>
+
+        <TextBlock Foreground="#808080" FontSize="11" TextWrapping="Wrap" Margin="0,10,0,0">
+            <Run Text="清單與「最後套用位址」保存於使用者設定檔（重啟仍生效）："/>
+            <Run Text="{Binding StoreFilePath, Mode=OneWay}" FontFamily="Consolas"/>
+            <Run Text="。appsettings 的 KnownServers 僅首次種子。生產辨識（Enabled=false）不受影響。"/>
+        </TextBlock>
+
+        <!-- 伺服器模型：清單 + 下載同步（主項1「一處更新、多台 edge 拉同步」的 edge 端）-->
+        <Separator Margin="0,12,0,10" Background="#3E3E42"/>
+        <TextBlock Text="伺服器模型（下載到本地 = 拉同步；下載後自動 md5 複驗）"
+                   Foreground="#9CDCFE" FontSize="13" Margin="0,0,0,4"/>
+        <WrapPanel>
+            <TextBlock Text="用途：" Foreground="#D4D4D4" VerticalAlignment="Center" Margin="0,0,4,0"/>
+            <ComboBox ItemsSource="{Binding TaskOptions}"
+                      SelectedItem="{Binding SelectedTask}"
+                      SelectedIndex="0"
+                      IsEnabled="{Binding NotSyncing}"
+                      Width="170" VerticalAlignment="Center" Margin="0,0,8,0"
+                      ToolTip="模型按用途分家：OCR / 公母模 / 瑕疵，各自有獨立登錄夾"/>
+            <Button Content="取得模型清單" Command="{Binding FetchModelsCommand}"
+                    IsEnabled="{Binding NotSyncing}" Padding="12,6" Margin="0,0,8,0"
+                    Background="#0E639C" Foreground="White" BorderThickness="0"
+                    ToolTip="向目前生效的 server 要該用途的版本清單（GET /api/models/{task}）"/>
+            <ComboBox ItemsSource="{Binding RemoteModels}"
+                      SelectedItem="{Binding SelectedRemoteModel}"
+                      IsEnabled="{Binding NotSyncing}"
+                      Width="330" VerticalAlignment="Center" Margin="0,0,8,0"
+                      ToolTip="★=server 現用版本；✓=本地登錄夾已有同名版本"/>
+            <Button Content="下載到本地" Command="{Binding DownloadSelectedModelCommand}"
+                    IsEnabled="{Binding NotSyncing}" Padding="12,6"
+                    Background="#2D7D46" Foreground="White" BorderThickness="0"
+                    ToolTip="下載選中版本兩顆 head 到 D:\AIVisionModels\pairs\（.tmp 串流 → md5 複驗 → 原子落地；驗不過即丟棄不落地）"/>
+        </WrapPanel>
+        <Border Background="#1B1B1B" CornerRadius="4" Padding="10" Margin="0,8,0,0" MinHeight="56">
+            <TextBlock Text="{Binding ModelSyncStatus, TargetNullValue='（尚未查詢）'}"
+                       Foreground="#4EC9B0" TextWrapping="Wrap" FontSize="13" FontFamily="Consolas"/>
+        </Border>
+    </StackPanel>
+</Window>

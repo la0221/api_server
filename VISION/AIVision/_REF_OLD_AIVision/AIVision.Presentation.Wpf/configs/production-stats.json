@@ -1,0 +1,21 @@
+{
+  "summaryFields": [
+    { "label": "工單", "path": "Order.Code", "labelWidth": "220" },
+    { "label": "產品", "path": "Order.Product", "labelWidth": "220" },
+    { "label": "開始時間", "path": "Order.StartAt", "format": "dt:yyyy/MM/dd HH:mm", "labelWidth": "220" },
+    { "label": "結束時間", "path": "Order.EndAt", "format": "dt:yyyy/MM/dd HH:mm", "labelWidth": "220" },
+    { "label": "節拍", "path": "Duration", "format": "ts:hh\\:mm\\:ss", "labelWidth": "220" },
+    { "label": "總數", "path": "Total", "format": "n0", "labelWidth": "220" },
+    { "label": "良品", "path": "Ok", "format": "n0", "labelWidth": "220" },
+    { "label": "不良品", "path": "Ng", "format": "n0", "labelWidth": "220" },
+    { "label": "良率", "path": "Yield", "format": "p2", "labelWidth": "220" }
+  ],
+  "defectBuckets": [ "misalign", "residual", "short", "bridging", "winding" ],
+  "defectLabelMap": {
+    "misalign": "Defect.misalign",
+    "residual": "Defect.residual",
+    "short": "Defect.short",
+    "bridging": "Defect.bridging",
+    "winding": "Defect.winding"
+  }
+}

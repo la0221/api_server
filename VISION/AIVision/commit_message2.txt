@@ -1,0 +1,28 @@
+feat: 實作 Workflow 瑕疵輪廓 Overlay 功能
+
+主要變更:
+- 新增 ContourOverlayRenderer 服務 (Bresenham 畫線演算法)
+- 新增 IContourOverlayRenderer 介面定義
+- 新增 OverlayOptions 配置類別
+- AutoRunService 整合輪廓繪製功能
+- appsettings.json 新增 Workflow.Overlay 配置區塊
+- App.xaml.cs 註冊 DI 服務
+
+技術細節:
+- 支援多輪廓瑕疵 (一個瑕疵可包含多個不連續區域)
+- 根據瑕疵類別自動配置顏色
+- 自動儲存標註圖片 (_annotated.jpg)
+- 可透過配置開關啟用/停用功能
+- 繪製效能: 約 20-100ms/圖 (取決於瑕疵數量)
+
+實作檔案:
+- AIVision.Application/Services/IContourOverlayRenderer.cs (新增)
+- AIVision.Infrastructure/Services/ContourOverlayRenderer.cs (新增)
+- AIVision.Infrastructure/Services/AutoRunService.cs (修改)
+- AIVision.Presentation.Wpf/App.xaml.cs (修改)
+- AIVision.Presentation.Wpf/appsettings.json (修改)
+- 1215修改追蹤/05_Overlay功能實作完成報告.md (新增)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>

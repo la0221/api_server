@@ -1,0 +1,140 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.OfflineModelManagementView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        xmlns:converters="clr-namespace:AIVision.Presentation.Wpf.Converters"
+        xmlns:models="clr-namespace:AIVision.Presentation.Wpf.Models"
+        mc:Ignorable="d"
+        Title="離線模型管理 (自建模型)"
+        Width="980"
+        Height="650"
+        WindowStartupLocation="CenterOwner"
+        Background="White"
+        d:DataContext="{d:DesignInstance vm:OfflineModelManagementViewModel, IsDesignTimeCreatable=False}">
+    <Window.Resources>
+        <converters:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 標題與目前模型 -->
+        <Border Grid.Row="0" Background="#F5F5F5" Padding="16" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <StackPanel>
+                <TextBlock Text="離線模型管理 (自建本地 ONNX)" FontSize="24" FontWeight="Bold" Margin="0,0,0,8" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <TextBlock Text="目前模型：" FontSize="14" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding CurrentModelName}"
+                               FontSize="14"
+                               FontWeight="Bold"
+                               Foreground="#2196F3"
+                               VerticalAlignment="Center"
+                               Margin="8,0,0,0" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="模型資料夾：" FontSize="12" VerticalAlignment="Center" Foreground="#666" />
+                    <TextBlock Text="{Binding ScanFolder}"
+                               FontSize="12"
+                               Foreground="#666"
+                               VerticalAlignment="Center"
+                               Margin="8,0,0,0"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="600"
+                               ToolTip="{Binding ScanFolder}" />
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <!-- 模型列表 -->
+        <Grid Grid.Row="1" Margin="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 列表 -->
+            <DataGrid Grid.Column="0"
+                      ItemsSource="{Binding Models}"
+                      SelectedItem="{Binding SelectedModel}"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      CanUserDeleteRows="False"
+                      IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                      SelectionMode="Single"
+                      HeadersVisibility="Column"
+                      GridLinesVisibility="Horizontal">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="模型名稱" Binding="{Binding Name}" Width="*" MinWidth="120" IsReadOnly="True" />
+                    <DataGridTextColumn Header="精度 / 說明" Binding="{Binding Description}" Width="1.4*" MinWidth="140" IsReadOnly="True" />
+                    <DataGridTextColumn Header="類別清單" Binding="{Binding ResultTypesSummary}" Width="1.6*" MinWidth="160" IsReadOnly="True" />
+                    <DataGridTextColumn Header="模型路徑" Binding="{Binding ModelPath}" Width="2*" MinWidth="200" IsReadOnly="True" />
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <!-- 操作按鈕 -->
+            <StackPanel Grid.Column="1" Margin="16,0,0,0" Width="130">
+                <Button Content="設為目前模型"
+                        Command="{Binding SetCurrentModelCommand}"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                        ToolTip="設為目前模型並即時熱抽換執行中的本地辨識器"
+                        Padding="12,8"
+                        Background="#2196F3"
+                        Foreground="White"
+                        Margin="0,0,0,12" />
+                <Button Content="編輯模型"
+                        Command="{Binding EditModelCommand}"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                        ToolTip="編輯所選本地 .onnx 模型的設定(顯示名稱/說明/前綴 + 進階前處理)"
+                        Padding="12,8"
+                        Margin="0,0,0,12" />
+                <Button Content="重新掃描"
+                        Command="{Binding RescanCommand}"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                        Padding="12,8"
+                        Margin="0,0,0,12" />
+                <Button Content="開啟模型資料夾"
+                        Command="{Binding OpenModelFolderCommand}"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InverseBooleanConverter}}"
+                        Padding="12,8"
+                        Margin="0,0,0,12" />
+            </StackPanel>
+        </Grid>
+
+        <!-- 狀態訊息 -->
+        <Border Grid.Row="2"
+                Background="#F0F0F0"
+                BorderBrush="#CCCCCC"
+                BorderThickness="1"
+                Padding="16"
+                Margin="16,0,16,16"
+                Visibility="{Binding StatusMessage, Converter={StaticResource NullToVisibilityConverter}}">
+            <StackPanel Orientation="Horizontal">
+                <ProgressBar Width="20" Height="20"
+                             IsIndeterminate="True"
+                             Visibility="{Binding IsLoading, Converter={StaticResource BooleanToVisibilityConverter}}"
+                             Margin="0,0,12,0" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           FontSize="14"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center" />
+            </StackPanel>
+        </Border>
+
+        <!-- 關閉按鈕 -->
+        <Border Grid.Row="3" Background="#F5F5F5" Padding="16" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0">
+            <Button Content="關閉"
+                    Width="100"
+                    HorizontalAlignment="Right"
+                    Padding="12,8"
+                    Click="CloseButton_Click" />
+        </Border>
+    </Grid>
+</Window>

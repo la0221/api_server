@@ -1,0 +1,100 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PlatformTarget>x64</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+
+    <!-- 應用程式資訊 -->
+    <AssemblyName>AIVision</AssemblyName>
+    <Product>AIVision 智慧視覺檢測系統</Product>
+    <Company>Your Company</Company>
+    <Version>1.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+
+    <!-- 獨立部署設定 (Self-Contained) -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AIVision.Application\AIVision.Application.csproj" />
+    <ProjectReference Include="..\AIVision.InterfaceAdapters\AIVision.InterfaceAdapters.csproj" />
+    <ProjectReference Include="..\AIVision.Infrastructure\AIVision.Infrastructure.csproj" />
+    <!-- 模號本地 ONNX 辨識引擎(帶 OnnxRuntime + OpenCvSharp 原生 DLL) -->
+    <ProjectReference Include="..\AIVision.MoldCode.Onnx\AIVision.MoldCode.Onnx.csproj" />
+  </ItemGroup>
+
+  <!-- IDS Peak SDK References -->
+  <ItemGroup>
+    <Reference Include="ids_peak_dotnet">
+      <HintPath>..\libs\cameras\IDS_PEAK\ids_peak_dotnet.dll</HintPath>
+    </Reference>
+    <Reference Include="ids_peak_ipl_dotnet">
+      <HintPath>..\libs\cameras\IDS_PEAK\ids_peak_ipl_dotnet.dll</HintPath>
+    </Reference>
+    <Reference Include="ids_peak_ipl_extension_dotnet">
+      <HintPath>..\libs\cameras\IDS_PEAK\ids_peak_ipl_extension_dotnet.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Copy IDS Peak SDK native DLLs to output directory (排除已引用的 .NET DLL) -->
+  <ItemGroup>
+    <None Include="..\libs\cameras\IDS_PEAK\*.dll"
+          Exclude="..\libs\cameras\IDS_PEAK\ids_peak_dotnet.dll;..\libs\cameras\IDS_PEAK\ids_peak_ipl_dotnet.dll;..\libs\cameras\IDS_PEAK\ids_peak_ipl_extension_dotnet.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>%(Filename)%(Extension)</Link>
+    </None>
+  </ItemGroup>
+
+  <!-- Copy LTS Light Controller DLL to output directory -->
+  <ItemGroup>
+    <None Include="..\libs\lights\opt\LTSController.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="AForge.Video" Version="2.2.5" />
+    <PackageReference Include="AForge.Video.DirectShow" Version="2.2.5" />
+    <PackageReference Include="ClosedXML" Version="0.104.0" />
+    <PackageReference Include="Polly" Version="8.2.0" />
+    <PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
+  </ItemGroup>
+
+  <!-- Logo 資源 -->
+  <ItemGroup>
+    <Resource Include="Assets\logo.png" />
+    <Resource Include="Assets\logo_splash.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="appsettings.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="configs\camera-ids.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="models.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="models.online.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,258 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.ProjectSelectWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        mc:Ignorable="d"
+        Title="選擇專案"
+        Height="500" Width="600"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="SingleBorderWindow"
+        ResizeMode="NoResize"
+        Background="#FF1E1E1E"
+        d:DataContext="{d:DesignInstance vm:ProjectSelectViewModel, IsDesignTimeCreatable=False}">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+    </Window.Resources>
+
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- 標題 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 資料夾路徑 -->
+            <RowDefinition Height="*"/>
+            <!-- 專案列表 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 專案資訊 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 操作按鈕 -->
+            <RowDefinition Height="Auto"/>
+            <!-- 底部按鈕 -->
+        </Grid.RowDefinitions>
+
+        <!-- 標題 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="AIVision 視覺檢測系統"
+                       FontSize="24" FontWeight="Bold"
+                       Foreground="White"/>
+            <TextBlock Text="請選擇要載入的專案，或建立新專案"
+                       FontSize="14" Foreground="#FFAAAAAA"
+                       Margin="0,8,0,0"/>
+        </StackPanel>
+
+        <!-- 資料夾路徑 -->
+        <Grid Grid.Row="1" Margin="0,0,0,15">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0"
+                       Text="專案資料夾:"
+                       Foreground="#FFAAAAAA"
+                       VerticalAlignment="Center"
+                       Margin="0,0,10,0"/>
+            <TextBox Grid.Column="1"
+                     Text="{Binding ProjectsFolder, Mode=TwoWay}"
+                     IsReadOnly="True"
+                     Background="#FF2D2D2D"
+                     Foreground="White"
+                     BorderBrush="#FF3F3F46"
+                     Padding="10,8"/>
+            <Button Grid.Column="2"
+                    Content="瀏覽..."
+                    Command="{Binding BrowseFolderCommand}"
+                    Margin="10,0,0,0"
+                    Padding="15,8"
+                    Background="#FF3F3F46"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"/>
+        </Grid>
+
+        <!-- 專案列表 -->
+        <Border Grid.Row="2"
+                Background="#FF2D2D2D"
+                CornerRadius="4"
+                BorderBrush="#FF3F3F46"
+                BorderThickness="1">
+            <ListBox ItemsSource="{Binding Projects}"
+                     SelectedItem="{Binding SelectedProject}"
+                     Background="Transparent"
+                     Foreground="White"
+                     BorderThickness="0"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Padding" Value="12,10"/>
+                        <Setter Property="Margin" Value="2"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border x:Name="Border"
+                                            Background="Transparent"
+                                            CornerRadius="4"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="#FF007ACC"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="#FF3F3F46"/>
+                                        </Trigger>
+                                        <MultiTrigger>
+                                            <MultiTrigger.Conditions>
+                                                <Condition Property="IsSelected" Value="True"/>
+                                                <Condition Property="IsMouseOver" Value="True"/>
+                                            </MultiTrigger.Conditions>
+                                            <Setter TargetName="Border" Property="Background" Value="#FF0066B8"/>
+                                        </MultiTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <TextBlock Text="{Binding Name}"
+                                       FontSize="14"
+                                       FontWeight="SemiBold"
+                                       Foreground="White"/>
+                            <TextBlock Text="{Binding Description}"
+                                       FontSize="12"
+                                       Foreground="#FFAAAAAA"
+                                       Margin="0,4,0,0"
+                                       TextTrimming="CharacterEllipsis"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
+        </Border>
+
+        <!-- 專案資訊 -->
+        <Border Grid.Row="3"
+                Background="#FF2D2D2D"
+                CornerRadius="4"
+                Margin="0,15,0,0"
+                Padding="15"
+                Visibility="{Binding HasSelectedProject, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.ColumnSpan="2"
+                           Text="專案設定預覽:"
+                           Foreground="#FFAAAAAA"
+                           FontSize="12"
+                           Margin="0,0,0,8"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0"
+                           Text="PLC:"
+                           Foreground="#FFAAAAAA"
+                           Width="80"/>
+                <TextBlock Grid.Row="1" Grid.Column="1"
+                           Foreground="White">
+                    <Run Text="{Binding SelectedProject.Plc.Host, Mode=OneWay}"/>
+                    <Run Text=":"/>
+                    <Run Text="{Binding SelectedProject.Plc.Port, Mode=OneWay}"/>
+                </TextBlock>
+
+                <TextBlock Grid.Row="2" Grid.Column="0"
+                           Text="相機 UserSet:"
+                           Foreground="#FFAAAAAA"
+                           Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="2" Grid.Column="1"
+                           Text="{Binding SelectedProject.Camera.UserSet, Mode=OneWay}"
+                           Foreground="White"
+                           Margin="0,4,0,0"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0"
+                           Text="AI 模式:"
+                           Foreground="#FFAAAAAA"
+                           Margin="0,4,0,0"/>
+                <TextBlock Grid.Row="3" Grid.Column="1"
+                           Text="{Binding SelectedProject.AiModel.InferenceType, Mode=OneWay}"
+                           Foreground="White"
+                           Margin="0,4,0,0"/>
+            </Grid>
+        </Border>
+
+        <!-- 專案操作按鈕 -->
+        <StackPanel Grid.Row="4"
+                    Orientation="Horizontal"
+                    Margin="0,15,0,0">
+            <Button Content="➕ 新增專案"
+                    Command="{Binding NewProjectCommand}"
+                    Padding="12,8"
+                    Margin="0,0,8,0"
+                    Background="#FF3F3F46"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"/>
+            <Button Content="✏️ 編輯"
+                    Command="{Binding EditProjectCommand}"
+                    IsEnabled="{Binding HasSelectedProject}"
+                    Padding="12,8"
+                    Margin="0,0,8,0"
+                    Background="#FF3F3F46"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"/>
+            <Button Content="🗑️ 刪除"
+                    Command="{Binding DeleteProjectCommand}"
+                    IsEnabled="{Binding HasSelectedProject}"
+                    Padding="12,8"
+                    Background="#FF3F3F46"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"/>
+            <Button Content="🔄 重新整理"
+                    Command="{Binding RefreshCommand}"
+                    Padding="12,8"
+                    Margin="8,0,0,0"
+                    Background="#FF3F3F46"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"/>
+        </StackPanel>
+
+        <!-- 底部按鈕 -->
+        <StackPanel Grid.Row="5"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,20,0,0">
+            <Button Content="取消"
+                    Command="{Binding CancelCommand}"
+                    Padding="25,10"
+                    Margin="0,0,10,0"
+                    Background="#FF3F3F46"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"/>
+            <Button Content="載入專案"
+                    Command="{Binding LoadProjectCommand}"
+                    IsEnabled="{Binding HasSelectedProject}"
+                    Padding="25,10"
+                    Background="#FF007ACC"
+                    Foreground="White"
+                    BorderThickness="0"
+                    Cursor="Hand"
+                    FontWeight="SemiBold"/>
+        </StackPanel>
+    </Grid>
+</Window>

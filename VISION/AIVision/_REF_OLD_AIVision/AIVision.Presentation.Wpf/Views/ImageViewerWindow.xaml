@@ -1,0 +1,137 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.ImageViewerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="圖片檢視"
+        Width="1200"
+        Height="900"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E"
+        KeyDown="Window_KeyDown">
+
+    <Window.Resources>
+        <!-- 導航按鈕樣式 -->
+        <Style x:Key="NavButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="80"/>
+            <Setter Property="Background" Value="#44000000"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#66000000"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- 主要圖片區域 -->
+        <Grid Grid.Row="0">
+            <!-- 圖片 -->
+            <ScrollViewer x:Name="ImageScrollViewer"
+                          HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Auto"
+                          Background="#1E1E1E">
+                <Image x:Name="MainImage"
+                       Stretch="Uniform"
+                       RenderOptions.BitmapScalingMode="HighQuality"
+                       MouseWheel="MainImage_MouseWheel"/>
+            </ScrollViewer>
+
+            <!-- 左側導航按鈕 -->
+            <Button x:Name="PrevButton"
+                    Content="◀"
+                    Style="{StaticResource NavButtonStyle}"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Center"
+                    Margin="20,0,0,0"
+                    Click="PrevButton_Click"/>
+
+            <!-- 右側導航按鈕 -->
+            <Button x:Name="NextButton"
+                    Content="▶"
+                    Style="{StaticResource NavButtonStyle}"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Margin="0,0,20,0"
+                    Click="NextButton_Click"/>
+
+            <!-- OK/NG 標籤 -->
+            <Border x:Name="ResultBadge"
+                    CornerRadius="6"
+                    Padding="16,8"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,20,20,0">
+                <TextBlock x:Name="ResultText"
+                           Foreground="White"
+                           FontWeight="Bold"
+                           FontSize="18"/>
+            </Border>
+        </Grid>
+
+        <!-- 底部資訊列 -->
+        <Border Grid.Row="1"
+                Background="#2D2D2D"
+                Padding="20,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- 左側資訊 -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="工單：" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="WorkOrderText" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center" Margin="0,0,24,0"/>
+                    <TextBlock Text="時間：" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TimestampText" Foreground="White" VerticalAlignment="Center" Margin="0,0,24,0"/>
+                    <TextBlock Text="信心度：" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="ConfidenceText" Foreground="White" VerticalAlignment="Center" Margin="0,0,24,0"/>
+                    <TextBlock Text="瑕疵數：" Foreground="#AAAAAA" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="DefectCountText" Foreground="White" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 中間頁碼 -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                    <TextBlock x:Name="PageIndexText" Foreground="White" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock Text=" / " Foreground="#AAAAAA" FontSize="16" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="TotalCountText" Foreground="White" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                </StackPanel>
+
+                <!-- 右側提示 -->
+                <TextBlock Grid.Column="2"
+                           Text="← → 鍵切換圖片 | 滾輪縮放 | ESC 關閉"
+                           Foreground="#888888"
+                           FontSize="12"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"/>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

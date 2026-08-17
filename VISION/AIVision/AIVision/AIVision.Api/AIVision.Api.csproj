@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AIVision.Application\AIVision.Application.csproj" />
+    <ProjectReference Include="..\AIVision.Infrastructure\AIVision.Infrastructure.csproj" />
+    <ProjectReference Include="..\AIVision.InterfaceAdapters\AIVision.InterfaceAdapters.csproj" />
+    <!-- 中央推論(Path B)：雙 head warpPolar ONNX 辨識器 + 影像解碼。 -->
+    <ProjectReference Include="..\AIVision.MoldCode.Onnx\AIVision.MoldCode.Onnx.csproj" />
+  </ItemGroup>
+
+</Project>
