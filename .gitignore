@@ -104,3 +104,10 @@ ehthumbs.db
 Desktop.ini
 nul
 .DS_Store
+
+# ---------- 例外：專案硬引用的廠商組件（237KB，沒它 build 不起來） ----------
+!NgAirBlowService/libs/Advantech/AdvMotAPI.dll
+
+# ---------- 例外：models/ 是刻意納管的模型資產快照（見 models/README.md） ----------
+!models/**/*.pt
+!models/**/*.onnx
