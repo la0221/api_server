@@ -1,0 +1,14 @@
+{
+  "server": "http://localhost:5030",
+  "task": "ocr_crnn",
+  "downloadedAt": "2026-08-04T09:45:46",
+  "md5Verified": true,
+  "files": {
+    "detector.pt": {
+      "md5": "a5fe4161b862a764136849f108b031d8"
+    },
+    "nonar.pt": {
+      "md5": "2daeeb4e04a44ac071e9206bc20a5fc4"
+    }
+  }
+}
