@@ -1,0 +1,39 @@
+[1] Μ栋+ ...
+    v671: +7286
+    data3: +13747
+    data4: +1164
+    stable: +21814
+    f0706: +3439
+    f0707: +1193
+    f0707b: +682
+    err: +40
+    errset: +0
+    羆璸 49365
+[2] – K=150阁ㄓ方近瑈瞷初痙 30% gate ...
+[3] 糶 train ...
+[3] 糶 val ...
+
+[4] ЧΘdata_v9/mohao 家 train 眎计
+    M101  train=2303 val=396
+    M15   train= 884 val=153
+    M17   train=1699 val=289
+    M23   train= 871 val=146
+    M28   train=1009 val=165
+    M49   train= 825 val=140
+    M50   train= 896 val=150
+    M52   train= 904 val=155
+    M53   train= 898 val=148
+    M54   train=1044 val=173
+    M56   train= 892 val=150
+    M58   train= 882 val=142
+    M59   train= 862 val=140
+    M60   train=1800 val=309
+    M61   train= 895 val=146
+    M82   train= 917 val=156
+    M83   train=2246 val=384
+    M95   train=1179 val=196
+    M96   train= 914 val=160
+    NG    train=   0 val=  0
+  xuehao マ腹计: 18
+  gate holdout: 1160 眎 @ D:\Content_lens_OCR\data_v9\_gate_field
+OUT -> D:\Content_lens_OCR\data_v9\mohao / D:\Content_lens_OCR\data_v9\xuehao
