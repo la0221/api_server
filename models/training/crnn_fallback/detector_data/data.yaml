@@ -1,0 +1,6 @@
+path: D:/incoming/Content_lens_OCR/OCR/crnn_fallback/detector_data
+train: train/images
+val: val/images
+names:
+  0: mohao
+  1: xuehao

@@ -1,0 +1,7 @@
+[V9.4 守門] 模號=D:\Content_lens_OCR\OCR\yolo_a_V9.4\runs_v94\mohao\weights\best.pt
+  穴號=D:\Content_lens_OCR\OCR\yolo_a_V9.4\runs_v94\xuehao\weights\best.pt
+  排除訓練 stem 298 個
+  ✔ M101: n=19133 雙對=99.8% 穴號=99.8% (1582s)
+  ✔ M17: n=8603 雙對=98.9% 穴號=98.9% (2322s)
+  ✔ M28: n=18538 雙對=98.9% 穴號=98.9% (3919s)
+  ✔ M54: n=13708 雙對=99.4% 穴號=99.5% (5130s)

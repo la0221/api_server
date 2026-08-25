@@ -1,0 +1,202 @@
+[
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-01_161013_2__r251_1_m.png",
+    "left_x": 89,
+    "right_x": 106
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-11_160528_3__r251_1_m.png",
+    "left_x": 90,
+    "right_x": 105
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-04_161141_2__r250_1_m.png",
+    "left_x": 89,
+    "right_x": 105
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-05_160443_18__r251_1_m.png",
+    "left_x": 74,
+    "right_x": 91
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-16_160621_11__r252_1_m.png",
+    "left_x": 91,
+    "right_x": 107
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-04_161147_13__r251_1_m.png",
+    "left_x": 88,
+    "right_x": 105
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-11_160531_9__r252_1_m.png",
+    "left_x": 150,
+    "right_x": 167
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-13_161307_7__r252_1_m.png",
+    "left_x": 120,
+    "right_x": 137
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-03_161927_18__r253_1_m.png",
+    "left_x": 61,
+    "right_x": 78
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-04_161146_11__r252_1_m.png",
+    "left_x": 119,
+    "right_x": 133
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-05_160437_5__r251_1_m.png",
+    "left_x": 94,
+    "right_x": 112
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-10_161223_2__r250_1_m.png",
+    "left_x": 88,
+    "right_x": 103
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-05_160436_3__r251_1_m.png",
+    "left_x": 87,
+    "right_x": 105
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-17_162053_8__r250_1_m.png",
+    "left_x": 75,
+    "right_x": 90
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-09_160924_1__r251_1_m.png",
+    "left_x": 91,
+    "right_x": 108
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-14_161103_11__r252_1_m.png",
+    "left_x": 90,
+    "right_x": 109
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-09_160927_6__r251_1_m.png",
+    "left_x": 91,
+    "right_x": 108
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-08_161359_19__r251_1_m.png",
+    "left_x": 91,
+    "right_x": 109
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-12_162012_19__r252_1_m.png",
+    "left_x": 88,
+    "right_x": 109
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-17_162054_11__r251_1_m.png",
+    "left_x": 56,
+    "right_x": 73
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-05_160439_10__r252_1_m.png",
+    "left_x": 92,
+    "right_x": 109
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-04_161148_16__r249_1_m.png",
+    "left_x": 87,
+    "right_x": 104
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-13_161307_6__r251_1_m.png",
+    "left_x": 119,
+    "right_x": 136
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-16_160617_2__r251_1_m.png",
+    "left_x": 81,
+    "right_x": 99
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-16_160629_19__r252_1_m.png",
+    "left_x": 74,
+    "right_x": 91
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-07_160754_5__r250_1_m.png",
+    "left_x": 99,
+    "right_x": 115
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-17_162056_14__r252_1_m.png",
+    "left_x": 88,
+    "right_x": 105
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-07_160802_16__r252_1_m.png",
+    "left_x": 89,
+    "right_x": 104
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-10_161227_9__r251_1_m.png",
+    "left_x": 116,
+    "right_x": 133
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-16_160622_12__r252_1_m.png",
+    "left_x": 89,
+    "right_x": 106
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-06_161428_2__r252_1_m.png",
+    "left_x": 91,
+    "right_x": 108
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-14_161102_10__r253_1_m.png",
+    "left_x": 94,
+    "right_x": 108
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-13_161312_16__r251_1_m.png",
+    "left_x": 87,
+    "right_x": 103
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-07_160759_12__r252_1_m.png",
+    "left_x": 50,
+    "right_x": 65
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-08_161354_11__r250_1_m.png",
+    "left_x": 124,
+    "right_x": 140
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-04_161143_6__r250_1_m.png",
+    "left_x": 88,
+    "right_x": 106
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-16_160629_20__r253_1_m.png",
+    "left_x": 123,
+    "right_x": 141
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-14_161105_14__r251_1_m.png",
+    "left_x": 90,
+    "right_x": 107
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-03_161926_16__r252_1_m.png",
+    "left_x": 88,
+    "right_x": 107
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M49\\M49-10_161230_16__r252_1_m.png",
+    "left_x": 88,
+    "right_x": 102
+  }
+]

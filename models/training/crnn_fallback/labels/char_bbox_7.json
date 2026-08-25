@@ -1,0 +1,182 @@
+[
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-01_got_M28-01_162446_3__r251_1_m.png",
+    "char": "7",
+    "left_x": 102,
+    "right_x": 120
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-12_got_M28-12_163549_20__r252_1_m.png",
+    "char": "7",
+    "left_x": 99,
+    "right_x": 114
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-04_got_M28-04_163808_13__r251_1_m.png",
+    "char": "7",
+    "left_x": 104,
+    "right_x": 121
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-06_got_M28-06_163021_17__r251_1_m.png",
+    "char": "7",
+    "left_x": 104,
+    "right_x": 120
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-18_got_M28-18_162629_15__r252_1_m.png",
+    "char": "7",
+    "left_x": 163,
+    "right_x": 178
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-05_got_M28-05_163457_11__r251_1_m.png",
+    "char": "7",
+    "left_x": 148,
+    "right_x": 163
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-13_got_M28-13_164021_4__r252_1_m.png",
+    "char": "7",
+    "left_x": 104,
+    "right_x": 119
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-15_got_M28-15_162535_4__r251_1_m.png",
+    "char": "7",
+    "left_x": 108,
+    "right_x": 122
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-04_got_M28-04_163806_9__r251_1_m.png",
+    "char": "7",
+    "left_x": 104,
+    "right_x": 123
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-05_got_M28-05_163455_7__r252_1_m.png",
+    "char": "7",
+    "left_x": 160,
+    "right_x": 176
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-06_got_M28-06_163014_1__r251_1_m.png",
+    "char": "7",
+    "left_x": 105,
+    "right_x": 122
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-11_got_M28-11_164115_14__r251_1_m.png",
+    "char": "7",
+    "left_x": 101,
+    "right_x": 117
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-05_got_M28-05_163502_21__r253_1_m.png",
+    "char": "7",
+    "left_x": 103,
+    "right_x": 119
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\M17-04_163805_7__r252_1_m.png",
+    "char": "7",
+    "left_x": 134,
+    "right_x": 155
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-10_got_M28-10_163100_7__r252_1_m.png",
+    "char": "7",
+    "left_x": 101,
+    "right_x": 114
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-16_got_M28-16_163411_15__r251_1_m.png",
+    "char": "7",
+    "left_x": 105,
+    "right_x": 122
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-10_got_M28-10_163103_14__r252_1_m.png",
+    "char": "7",
+    "left_x": 105,
+    "right_x": 121
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-10_got_M28-10_163059_5__r250_1_m.png",
+    "char": "7",
+    "left_x": 103,
+    "right_x": 117
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-14_got_M49-14_163204_16__r251_1_m.png",
+    "char": "7",
+    "left_x": 104,
+    "right_x": 119
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\M17-06_163014_2__r251_1_m.png",
+    "char": "7",
+    "left_x": 121,
+    "right_x": 138
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-06_got_M28-06_163016_7__r251_1_m.png",
+    "char": "7",
+    "left_x": 106,
+    "right_x": 123
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-05_got_M28-05_163459_16__r252_1_m.png",
+    "char": "7",
+    "left_x": 98,
+    "right_x": 113
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-15_got_M28-15_162534_3__r251_1_m.png",
+    "char": "7",
+    "left_x": 103,
+    "right_x": 118
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-18_got_M28-18_162624_4__r252_1_m.png",
+    "char": "7",
+    "left_x": 86,
+    "right_x": 100
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\M17-02_163628_2__r251_1_m.png",
+    "char": "7",
+    "left_x": 154,
+    "right_x": 169
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-08_got_M28-08_163716_5__r252_1_m.png",
+    "char": "7",
+    "left_x": 104,
+    "right_x": 121
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\M17-08_163721_13__r251_1_m.png",
+    "char": "7",
+    "left_x": 103,
+    "right_x": 122
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-08_got_M49-08_163729_19__r250_1_m.png",
+    "char": "7",
+    "left_x": 105,
+    "right_x": 121
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-12_got_M28-12_163536_2__r252_1_m.png",
+    "char": "7",
+    "left_x": 134,
+    "right_x": 149
+  },
+  {
+    "path": "D:\\incoming\\Content_lens_OCR\\data_v671_crops_v2\\train\\M17\\exp_M17-18_got_M28-18_162630_16__r252_1_m.png",
+    "char": "7",
+    "left_x": 106,
+    "right_x": 118
+  }
+]
