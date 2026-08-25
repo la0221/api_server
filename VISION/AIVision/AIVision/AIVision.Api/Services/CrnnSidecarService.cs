@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -95,8 +95,35 @@ public sealed class CrnnSidecarService : IDisposable
 
     public bool Enabled => _options.Enabled;
 
-    /// <summary>預設版本（請求未指定時用）。</summary>
-    public string DefaultVersion => _options.DefaultVersion;
+    /// <summary>預設版本（請求未指定時用）。可在執行期改（見 <see cref="SetDefaultVersion"/>）。</summary>
+    public string DefaultVersion => _volatileDefaultVersion ?? _options.DefaultVersion;
+
+    /// <summary>執行期覆寫的預設版本；null = 用 appsettings 的值。</summary>
+    private string? _volatileDefaultVersion;
+
+    /// <summary>
+    /// 執行期切換「現用版本」——父端監控畫面選了版本就即刻生效，**免改設定檔免重啟**
+    /// （2026-08-19：父端原本根本沒地方選模型）。
+    /// <para>只改預設值，不預先冷啟行程：下一筆未指定版本的請求會用新版本，
+    /// 該版本沒在池裡就自然冷啟（20-90s）。舊版本行程留著，由 LRU 自然淘汰。</para>
+    /// <para>⚠ 只影響本次執行；要永久生效仍請改 appsettings 的 CrnnSidecar:DefaultVersion。</para>
+    /// </summary>
+    /// <returns>失敗原因；成功回 null。</returns>
+    public string? SetDefaultVersion(string version)
+    {
+        version = (version ?? "").Trim();
+        if (version.Length == 0)
+            return "版本不可空白。";
+        if (!ModelRegistryService.IsSafeVersionName(version))
+            return "版本名不合法（僅允許字母/數字開頭與 . _ -）。";
+        if (_registry.ResolveFile("ocr_crnn", version, "detector.pt") is null ||
+            _registry.ResolveFile("ocr_crnn", version, "nonar.pt") is null)
+            return $"登錄庫（ocr_crnn）找不到版本 '{version}'——請先從發布頁上架。";
+
+        _volatileDefaultVersion = version;
+        _logger?.LogInformation("[CrnnSidecar] 現用版本切換為 {Version}（執行期，未寫回 appsettings）", version);
+        return null;
+    }
 
     /// <summary>目前池中的版本（health 用）。</summary>
     public IReadOnlyList<CrnnLoadedVersion> LoadedVersions =>
@@ -107,7 +134,8 @@ public sealed class CrnnSidecarService : IDisposable
     /// 版本不存在於登錄庫 → Ok=false 且 <see cref="CrnnResult.Error"/> 以 "VERSION_NOT_FOUND:" 開頭（供 controller 轉 404）。
     /// </summary>
     public async Task<CrnnResult> RecognizeAsync(
-        byte[] pngBytes, string? requestedVersion = null, CancellationToken ct = default)
+        byte[] pngBytes, string? requestedVersion = null, CancellationToken ct = default,
+        bool isStrip = false)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
@@ -127,7 +155,7 @@ public sealed class CrnnSidecarService : IDisposable
             };
 
         var instance = GetOrCreateInstance(version, detector, nonar);
-        return await instance.RecognizeAsync(pngBytes, ct).ConfigureAwait(false);
+        return await instance.RecognizeAsync(pngBytes, ct, isStrip).ConfigureAwait(false);
     }
 
     private SidecarInstance GetOrCreateInstance(string version, string detector, string nonar)
@@ -200,7 +228,7 @@ public sealed class CrnnSidecarService : IDisposable
         public DateTime LastUsedUtc { get; private set; } = DateTime.UtcNow;
         public bool IsIdle => _gate.CurrentCount > 0;
 
-        public async Task<CrnnResult> RecognizeAsync(byte[] pngBytes, CancellationToken ct)
+        public async Task<CrnnResult> RecognizeAsync(byte[] pngBytes, CancellationToken ct, bool isStrip = false)
         {
             await _gate.WaitAsync(ct).ConfigureAwait(false);
             string? tmpFile = null;
@@ -214,22 +242,46 @@ public sealed class CrnnSidecarService : IDisposable
                 if (startError is not null)
                     return new CrnnResult { Ok = false, Error = startError };
 
-                tmpFile = Path.Combine(Path.GetTempPath(), $"aivision_crnn_{Guid.NewGuid():N}.png");
-                await File.WriteAllBytesAsync(tmpFile, pngBytes, ct).ConfigureAwait(false);
+                // ⚠ 交圖給 sidecar 是走「寫暫存檔 → 把路徑丟給 python」。
+                //   暫存檔原本放在 %TEMP%，那是防毒/索引器掃得最兇的地方：新檔剛寫好就被掃描器short暫鎖住，
+                //   python open() 拿到 [Errno 13] Permission denied。實測 12 次裡失敗 1 次（約 8%）。
+                //   後果在站端會被放大：一次瞬斷就讓實時管線進 30 秒降級冷卻、整段走本機舊模型。
+                //   對策二選一都做：① 改用我們自己的資料夾（掃描器較少碰）② 檔案問題重試一次。
+                var tmpDir = Path.Combine(AppContext.BaseDirectory, "tmp", "crnn");
+                Directory.CreateDirectory(tmpDir);
 
-                // 協定：一行 JSON 請求 → 讀到 RESULT_JSON。apply_roi=false：收已裁鏡片圖（同 /pair 契約）。
-                var request = JsonSerializer.Serialize(new { image = tmpFile, apply_roi = false });
-                await _proc!.StandardInput.WriteLineAsync(request.AsMemory(), ct).ConfigureAwait(false);
-                await _proc.StandardInput.FlushAsync(ct).ConfigureAwait(false);
-
-                var json = await ReadUntilPrefixAsync("RESULT_JSON:", _options.RequestTimeoutMs, ct)
-                    .ConfigureAwait(false);
-                if (json is null)
+                CrnnResult result = default!;
+                for (var attempt = 1; attempt <= 2; attempt++)
                 {
-                    KillProcess("推論逾時/行程無回應");
-                    return new CrnnResult { Ok = false, Error = $"CRNN sidecar（{Version}）無回應（>{_options.RequestTimeoutMs}ms），已重置行程。" };
+                    if (tmpFile is not null)
+                        try { File.Delete(tmpFile); } catch { /* 清不掉不影響 */ }
+
+                    tmpFile = Path.Combine(tmpDir, $"aivision_crnn_{Guid.NewGuid():N}.png");
+                    await File.WriteAllBytesAsync(tmpFile, pngBytes, ct).ConfigureAwait(false);
+
+                    // 協定：一行 JSON 請求 → 讀到 RESULT_JSON。apply_roi=false：收已裁鏡片圖（同 /pair 契約）。
+                    // is_strip=true：站端(edge)已做完前處理，父端只做辨識，不再找圓/展開。
+                    var request = JsonSerializer.Serialize(
+                        new { image = tmpFile, apply_roi = false, is_strip = isStrip });
+                    await _proc!.StandardInput.WriteLineAsync(request.AsMemory(), ct).ConfigureAwait(false);
+                    await _proc.StandardInput.FlushAsync(ct).ConfigureAwait(false);
+
+                    var json = await ReadUntilPrefixAsync("RESULT_JSON:", _options.RequestTimeoutMs, ct)
+                        .ConfigureAwait(false);
+                    if (json is null)
+                    {
+                        KillProcess("推論逾時/行程無回應");
+                        return new CrnnResult { Ok = false, Error = $"CRNN sidecar（{Version}）無回應（>{_options.RequestTimeoutMs}ms），已重置行程。" };
+                    }
+
+                    result = MapResult(json);
+                    if (result.Ok || attempt == 2 || !IsTransientFileError(result.Error))
+                        return result;
+
+                    // 檔案被短暫鎖住 → 換一個檔名再試一次（不重啟行程，成本很低）
+                    await Task.Delay(20, ct).ConfigureAwait(false);
                 }
-                return MapResult(json);
+                return result;
             }
             catch (OperationCanceledException) { throw; }
             catch (Exception ex)
@@ -245,6 +297,16 @@ public sealed class CrnnSidecarService : IDisposable
                 _gate.Release();
             }
         }
+
+        /// <summary>
+        /// 是不是「暫存檔一時打不開」這種可重試的錯（防毒/索引器短暫鎖檔）。
+        /// 只認檔案存取類的字眼——辨識本身失敗（讀不到字）不該重試。
+        /// </summary>
+        private static bool IsTransientFileError(string? error) =>
+            error is not null &&
+            (error.Contains("Errno 13", StringComparison.OrdinalIgnoreCase)
+             || error.Contains("Permission denied", StringComparison.OrdinalIgnoreCase)
+             || error.Contains("being used by another process", StringComparison.OrdinalIgnoreCase));
 
         private async Task<string?> EnsureStartedAsync(CancellationToken ct)
         {

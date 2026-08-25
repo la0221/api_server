@@ -23,6 +23,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIVision.MoldCode.Harness",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIVision.EdgeSimulator", "AIVision.EdgeSimulator\AIVision.EdgeSimulator.csproj", "{3B38F705-97DE-4F64-963E-A8342149DDF7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIVision.Presentation.Server", "AIVision.Presentation.Server\AIVision.Presentation.Server.csproj", "{A9AC4CC0-A4EE-4835-B813-755037DC1D57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -153,6 +155,18 @@ Global
 		{3B38F705-97DE-4F64-963E-A8342149DDF7}.Release|x64.Build.0 = Release|Any CPU
 		{3B38F705-97DE-4F64-963E-A8342149DDF7}.Release|x86.ActiveCfg = Release|Any CPU
 		{3B38F705-97DE-4F64-963E-A8342149DDF7}.Release|x86.Build.0 = Release|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Debug|x64.Build.0 = Debug|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Debug|x86.Build.0 = Debug|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Release|x64.ActiveCfg = Release|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Release|x64.Build.0 = Release|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Release|x86.ActiveCfg = Release|Any CPU
+		{A9AC4CC0-A4EE-4835-B813-755037DC1D57}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

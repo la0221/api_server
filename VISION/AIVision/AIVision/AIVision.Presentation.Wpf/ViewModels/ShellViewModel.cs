@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -206,6 +206,62 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     }
 
     /// <summary>
+    /// 主頁即時預覽是否已接上相機影格。
+    /// <para>用來防重複訂閱：Area Scan 啟動時也會叫同一套流程，沒有這個旗標會訂閱兩次，
+    /// 每張影格更新兩次 LiveBitmap。</para>
+    /// </summary>
+    private bool _livePreviewOn;
+
+    /// <summary>
+    /// 開啟主頁即時預覽——**不需要工單、不需要 PLC、不必按「開始」**。
+    ///
+    /// <para>原本主頁那塊「影像預覽」只有走 <see cref="StartAreaScanModeAsync"/>（＝按開始跑產線）
+    /// 才會訂閱相機影格，所以相機明明接好了、面板卻永遠是一片黑，而且畫面上完全沒說為什麼
+    /// （2026-08-19 使用者反映）。這裡改成一進面板就試著把預覽接起來。</para>
+    ///
+    /// <para>失敗不吵——不跳 MessageBox，把原因寫在預覽區中央那行字上，現場自己看得懂。</para>
+    /// </summary>
+    [RelayCommand]
+    private async Task StartLivePreviewAsync()
+    {
+        if (_livePreviewOn) return;
+
+        // 假相機：不要假裝在預覽，明講。
+        var cameraTypeName = _camera.GetType().Name;
+        if (cameraTypeName.Contains("Fake", StringComparison.OrdinalIgnoreCase))
+        {
+            LivePreviewHint = "未偵測到實際相機（目前是模擬相機）\n請確認相機已接上，並檢查 appsettings 的 Devices:Camera:Type";
+            _logger?.LogInformation("[LivePreview] 目前是假相機（{Type}），不啟動即時預覽", cameraTypeName);
+            return;
+        }
+
+        try
+        {
+            if (!_camera.IsOpen)
+            {
+                LivePreviewHint = "正在開啟相機…";
+                await _camera.OpenAsync("", CancellationToken.None);
+            }
+
+            await _camera.StartPreviewAsync(CancellationToken.None);
+
+            // 訂閱前先解一次：即使旗標被繞過也不會變成雙重訂閱。
+            _camera.FrameReceived -= OnCameraFrameReceived;
+            _camera.FrameReceived += OnCameraFrameReceived;
+            _livePreviewOn = true;
+
+            LivePreviewHint = "已連上相機，等待第一張影格…";
+            _logger?.LogInformation("[LivePreview] ✓ 主頁即時預覽已啟動（{Type}）", cameraTypeName);
+        }
+        catch (Exception ex)
+        {
+            // 相機沒接、被別的程式占用、SDK 初始化失敗都會走到這裡。
+            _logger?.LogWarning(ex, "[LivePreview] 啟動主頁即時預覽失敗");
+            LivePreviewHint = $"相機未連線：{ex.Message}\n可到「相機面板 (Ctrl+Space)」確認裝置，或重新插拔後再開一次面板";
+        }
+    }
+
+    /// <summary>
     /// 相機幀接收處理（用於主頁即時預覽）
     /// </summary>
     private void OnCameraFrameReceived(object? sender, ImageData imageData)
@@ -314,6 +370,13 @@ public partial class ShellViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private BitmapSource? liveBitmap;
+
+    /// <summary>
+    /// 預覽區中央那行字：沒有影像時**要講清楚為什麼**，不要留一片黑讓現場猜
+    /// （2026-08-19：相機接好了、面板卻全黑且毫無說明）。
+    /// </summary>
+    [ObservableProperty]
+    private string livePreviewHint = "影像預覽";
 
     // ===== 專案載入相關屬性 =====
 
@@ -956,6 +1019,13 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void OpenServerSettings() => _navigationService.ShowWindow<ServerSettingsView>();
 
+    /// <summary>
+    /// 系統選單「吹氣觸發設定」：現場調延遲、開關混料/NG、指定 IO 主機，並可直接測試吹一發。
+    /// <para>設定寫 <c>configs/blow.json</c>，存檔即生效免重啟。</para>
+    /// </summary>
+    [RelayCommand]
+    private void OpenBlowSettings() => _navigationService.ShowWindow<BlowSettingsView>();
+
     /// <summary>「模型發布」（工程師以上）：選用途→選 .onnx→版本號→上傳到伺服器登錄夾。</summary>
     [RelayCommand]
     private void OpenModelPublish() => _navigationService.ShowWindow<ModelPublishView>();
@@ -963,6 +1033,21 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     /// <summary>「CRNN 測試（中央推論）」：引擎並行期的 CRNN 專屬批量測試頁（CRNN 只在 server 跑）。</summary>
     [RelayCommand]
     private void OpenCrnnBatch() => _navigationService.ShowWindow<CrnnBatchView>();
+
+    /// <summary>
+    /// 站端送檢（前處理下放）——原圖留本站、只送前處理小圖到中央推論。
+    /// 中央那端的監控畫面是另一支程式（AIVision.Presentation.Server），裝在推論機上。
+    /// </summary>
+    [RelayCommand]
+    private void OpenRouteAEdge() => _navigationService.ShowWindow<RouteAEdgeView>();
+
+    /// <summary>
+    /// 模號穴號實時檢測（觸發式）——產線投料時的那條路：
+    /// 相機每幀進環形緩衝 → IO 觸發只記時刻 → 擷取窗內回頭找工件完整進框的那一幀 →
+    /// 送父端讀字（逾時改本機）→ **站端拿工單判定** → 存三件套 → 混料/NG 吹氣。
+    /// </summary>
+    [RelayCommand]
+    private void OpenRealtimeInspection() => _navigationService.ShowWindow<RealtimeInspectionView>();
 
     [RelayCommand]
     private async Task ToggleRunAsync(bool? isChecked)
@@ -1131,15 +1216,12 @@ public partial class ShellViewModel : ObservableObject, IDisposable
         // 訂閱事件（不控制連線，只訂閱）
         SubscribePlcEvents();
 
-        // 啟動相機預覽（用於主頁即時顯示）
+        // 啟動相機預覽（用於主頁即時顯示）。
+        // 走與「一進面板就預覽」同一套流程：內含防重複訂閱，這裡再叫一次不會變成雙重更新。
         try
         {
             _logger?.LogInformation("啟動相機預覽...");
-            await _camera.StartPreviewAsync(CancellationToken.None);
-
-            // 訂閱相機幀事件以更新 LiveBitmap
-            _camera.FrameReceived += OnCameraFrameReceived;
-
+            await StartLivePreviewAsync();
             _logger?.LogInformation("✓ 相機預覽已啟動");
         }
         catch (Exception ex)
@@ -1183,17 +1265,10 @@ public partial class ShellViewModel : ObservableObject, IDisposable
     /// </summary>
     private async Task StopAreaScanModeAsync()
     {
-        // 停止相機預覽
-        try
-        {
-            _camera.FrameReceived -= OnCameraFrameReceived;
-            await _camera.StopPreviewAsync(CancellationToken.None);
-            _logger?.LogInformation("✓ 相機預覽已停止");
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "停止相機預覽失敗");
-        }
+        // ⚠ 這裡**刻意不關相機預覽**：面板那塊即時影像不屬於產線流程，
+        // 停掉工單不代表使用者不想看畫面（以前一按停止就整片變黑，看起來像壞了）。
+        // 真正的關閉在 CleanupAsync（關程式時）。
+        await Task.CompletedTask;
 
         // 取消訂閱 PLC 事件
         UnsubscribePlcEvents();

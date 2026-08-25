@@ -615,8 +615,8 @@ public partial class BatchInferenceViewModel : ObservableObject, IAsyncDisposabl
             var xu = Path.Combine(dir, "xuehao.onnx");
             if (File.Exists(mo) && File.Exists(xu)) return (mo, xu);
         }
-        if (File.Exists(_warpOpts.MohaoModelPath) && File.Exists(_warpOpts.XuehaoModelPath))
-            return (_warpOpts.MohaoModelPath, _warpOpts.XuehaoModelPath);
+        if (File.Exists(_warpOpts.ResolvedMohaoModelPath) && File.Exists(_warpOpts.ResolvedXuehaoModelPath))
+            return (_warpOpts.ResolvedMohaoModelPath, _warpOpts.ResolvedXuehaoModelPath);
         return null;
     }
 

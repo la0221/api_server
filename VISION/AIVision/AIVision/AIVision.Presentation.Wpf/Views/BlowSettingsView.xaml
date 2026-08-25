@@ -1,0 +1,173 @@
+<Window x:Class="AIVision.Presentation.Wpf.Views.BlowSettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        mc:Ignorable="d"
+        Title="吹氣觸發設定"
+        Width="720"
+        Height="620"
+        MinWidth="620"
+        MinHeight="520"
+        Background="#FFF2F2F2"
+        WindowStartupLocation="CenterOwner"
+        d:DataContext="{d:DesignInstance vm:BlowSettingsViewModel, IsDesignTimeCreatable=False}">
+    <Window.Resources>
+        <!-- Background 一律寫在 Style 內：寫在元素上會壓過 IsEnabled Trigger -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="#FF2196F3" />
+            <Setter Property="Padding" Value="18,8" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF1976D2" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#FFBDBDBD" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="TestButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#FFFB8C00" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#FF888888" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="Width" Value="130" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="30" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="6,0" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="18,14">
+            <StackPanel>
+                <TextBlock Text="吹氣觸發（送到現場 IO 監聽程式）" FontSize="18" FontWeight="Bold" Foreground="#FF333333" />
+                <TextBlock FontSize="12" Foreground="#FF888888" TextWrapping="Wrap" Margin="0,6,0,0"
+                           Text="混料／不良品判定後，把觸發訊號用 TCP 送給 IO 端的程式，由它驅動吹嘴。與 PLC 的氣吹並存——現場 IO 卡不在本機時，PLC 那條吹不到。" />
+            </StackPanel>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16">
+            <StackPanel>
+
+                <!-- 開關 -->
+                <Border Background="White" CornerRadius="10" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="要不要吹" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="#FF444444" Margin="0,0,0,10" />
+                        <CheckBox IsChecked="{Binding Enabled}" FontSize="13" Margin="0,0,0,8"
+                                  Content="啟用吹氣觸發（關閉時完全不送，PLC 那條不受影響）" />
+                        <CheckBox IsChecked="{Binding BlowOnMismatch}" FontSize="13" Margin="0,0,0,8"
+                                  Content="混料（MISMATCH）要吹" />
+                        <CheckBox IsChecked="{Binding BlowOnNg}" FontSize="13"
+                                  Content="不良品（NG）要吹　—　預設不吹，NG 常另有處理站" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 時機 -->
+                <Border Background="White" CornerRadius="10" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="什麼時候吹" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="#FF444444" Margin="0,0,0,10" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="延遲（毫秒）" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding DelayMs, UpdateSourceTrigger=PropertyChanged}" Width="120" />
+                        </StackPanel>
+                        <TextBlock FontSize="11" Foreground="#FF999999" TextWrapping="Wrap"
+                                   Text="判定完成到吹氣之間要等多久——工件從拍照位走到吹嘴需要時間，太早吹會吹到前一片。用碼錶量出來填，再按下面的「測試吹氣」對一次。" />
+                    </StackPanel>
+                </Border>
+
+                <!-- 送到哪 -->
+                <Border Background="White" CornerRadius="10" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="訊號送到哪" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="#FF444444" Margin="0,0,0,10" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="IO 主機位址" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding Host, UpdateSourceTrigger=PropertyChanged}" Width="200" />
+                            <TextBlock Text="埠" Style="{StaticResource FieldLabel}" Width="40" Margin="14,0,0,0" />
+                            <TextBox Text="{Binding Port, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <TextBlock Text="IO 卡輸出通道" Style="{StaticResource FieldLabel}" />
+                            <TextBox Text="{Binding Channel, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                            <TextBlock Text="連線逾時 ms" Style="{StaticResource FieldLabel}" Width="100" Margin="14,0,0,0" />
+                            <TextBox Text="{Binding ConnectTimeoutMs, UpdateSourceTrigger=PropertyChanged}" Width="90" />
+                        </StackPanel>
+                        <CheckBox IsChecked="{Binding KeepAlive}" FontSize="13" Margin="0,8,0,0"
+                                  Content="維持長連線（對方的對接說明建議這樣，可少掉每次重連的開銷）" />
+                        <CheckBox IsChecked="{Binding UseJsonFormat}" FontSize="13" Margin="0,8,0,0"
+                                  Content="送 JSON 格式（給相機版那支自製監聽程式）" />
+                        <Border Background="#FFFDECE9" BorderBrush="#FFE9A8A8" BorderThickness="1"
+                                CornerRadius="6" Padding="10,8" Margin="0,6,0,0">
+                            <TextBlock FontSize="11" Foreground="#FF8B2020" TextWrapping="Wrap"
+                                       Text="⚠ 現場的 NgAirBlowService 是「內容含 NG 才吹」——JSON 那串整串沒有 NG 兩個字，勾錯會變成：混料照判、log 照寫、就是不吹，而且兩邊都不報錯。不確定就不要勾。" />
+                        </Border>
+                        <CheckBox IsChecked="{Binding UseLogOnly}" FontSize="13" Margin="0,8,0,0"
+                                  Content="只寫 log 不真的送出（開發機／驗收用，要重開程式才換）" />
+                        <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
+                            <TextBlock Text="目前通道" Style="{StaticResource FieldLabel}" />
+                            <TextBlock Text="{Binding OutputName}" FontSize="13" Foreground="#FF1378AA"
+                                       FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- 設定檔 -->
+                <Border Background="#FFFBF3E0" BorderBrush="#FFE9C98A" BorderThickness="1"
+                        CornerRadius="10" Padding="14">
+                    <StackPanel>
+                        <TextBlock Text="設定存在哪" FontSize="13" FontWeight="SemiBold" Foreground="#FFB8860B" />
+                        <TextBlock Text="{Binding ConfigPath}" FontSize="12" Foreground="#FF7A6420"
+                                   TextWrapping="Wrap" Margin="0,4,0,0" />
+                        <TextBlock FontSize="11" Foreground="#FF7A6420" TextWrapping="Wrap" Margin="0,6,0,0"
+                                   Text="存檔即生效、免重啟。要複製到別台就搬這個檔（appsettings 是部署設定，不要在那邊調現場參數）。" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- 動作 -->
+        <Border Grid.Row="2" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="16,12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="測試吹氣" Command="{Binding TestBlowCommand}"
+                        Style="{StaticResource TestButton}" FontSize="14" FontWeight="SemiBold" />
+                <Button Content="儲存" Command="{Binding SaveCommand}" Margin="10,0,0,0"
+                        Style="{StaticResource PrimaryButton}" FontSize="14" FontWeight="SemiBold" />
+                <Button Content="關閉" Click="OnCloseClick" Margin="10,0,0,0"
+                        Style="{StaticResource PrimaryButton}" Background="#FF757575"
+                        FontSize="14" />
+            </StackPanel>
+        </Border>
+
+        <Border Grid.Row="3" Background="#FF2D2D30" Padding="16,8">
+            <TextBlock Text="{Binding StatusText}" Foreground="#FFDDDDDD" FontSize="12" TextWrapping="Wrap" />
+        </Border>
+    </Grid>
+</Window>

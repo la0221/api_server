@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,7 +15,7 @@ using peak.core.nodes;
 
 namespace AIVision.Infrastructure.Devices.Camera.Ids;
 
-public sealed class IdsCameraPort : ICameraPort
+public sealed class IdsCameraPort : ICameraPort, ICameraTriggerLinePort
 {
     private readonly ILogger<IdsCameraPort> _logger;
     private readonly IdsCameraOptions _options;
@@ -41,6 +41,13 @@ public sealed class IdsCameraPort : ICameraPort
     private bool _isPreviewing;
     private IdsCameraSettings? _currentSettings;
 
+    // ── IO 觸發線（Line0）：現場的開關接在相機的數位輸入上，不是接 PLC ──
+    // 做法與已驗證的「模號檢驗/相機版」一致：相機維持 free-run 連續預覽，
+    // 每擷取一幀就順便讀一次 LineStatus，由低變高的瞬間發一次上升緣事件。
+    private readonly object _nodeLock = new();   // nodemap 非執行緒安全：擷取迴圈讀 LineStatus vs UI 改曝光會並行
+    private bool _triggerLineReady;
+    private bool _triggerLinePrev;
+
     public IdsCameraPort(
         IOptions<IdsCameraOptions> options,
         IdsCameraControlPort controlPort,
@@ -53,6 +60,15 @@ public sealed class IdsCameraPort : ICameraPort
     }
 
     public event EventHandler<ImageData>? FrameReceived;
+
+    /// <inheritdoc />
+    public event EventHandler? TriggerLineRose;
+
+    /// <inheritdoc />
+    public bool IsTriggerLineReady => _triggerLineReady;
+
+    /// <inheritdoc />
+    public string TriggerLineName => _options.TriggerLine;
 
     public bool IsOpen => _device is not null;
 
@@ -117,6 +133,8 @@ public sealed class IdsCameraPort : ICameraPort
 
             // 查詢並記錄設備資訊（參考 CameraSDK_CSharp）
             LogDeviceInfo();
+
+            PrepareTriggerLine();
 
             _controlPort.UpdateBounds(_remoteNodeMap);
             _acquisitionStart = _remoteNodeMap?.TryFindNodeCommand("AcquisitionStart");
@@ -411,40 +429,67 @@ public sealed class IdsCameraPort : ICameraPort
             return;
         }
 
+        // changedKind is null ＝ 開相機時「一次套用全部參數」。
+        // 這個情境下**單一參數套不上去不該讓整台相機開不起來**——不同機種支援的節點本來就不一樣
+        // （實測某機種 GainSelector 不可寫，結果整個 OpenAsync 拋出、主頁預覽永遠是黑的）。
+        // 反之，使用者在相機面板手動調某一項（changedKind 有值）時仍要拋，UI 才報得出失敗原因。
+        var bestEffort = changedKind is null;
+
+        async Task ApplyAsync(Action configure, bool requiresBufferRecreate, string description)
+        {
+            if (!bestEffort)
+            {
+                await SafeReconfigureAsync(configure, requiresBufferRecreate, cancellationToken, description)
+                    .ConfigureAwait(false);
+                return;
+            }
+            try
+            {
+                await SafeReconfigureAsync(configure, requiresBufferRecreate, cancellationToken, description)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    "開啟相機時套用 {Description} 失敗，略過此項繼續（相機仍可使用）：{Message}",
+                    description, ex.Message);
+            }
+        }
+
         if (changedKind is null || changedKind == CameraParameterKind.ExposureTime)
         {
-            await SafeReconfigureAsync(() => ApplyExposure(settings.ExposureTimeUs), requiresBufferRecreate: false, cancellationToken, "Exposure").ConfigureAwait(false);
+            await ApplyAsync(() => ApplyExposure(settings.ExposureTimeUs), requiresBufferRecreate: false, "Exposure").ConfigureAwait(false);
         }
 
         if (changedKind is null || changedKind == CameraParameterKind.Gain)
         {
-            await SafeReconfigureAsync(() => ApplyGain(settings.GainSelector, settings.Gain), requiresBufferRecreate: false, cancellationToken, "Gain").ConfigureAwait(false);
+            await ApplyAsync(() => ApplyGain(settings.GainSelector, settings.Gain), requiresBufferRecreate: false, "Gain").ConfigureAwait(false);
         }
 
         if (changedKind is null || changedKind == CameraParameterKind.Height)
         {
-            await SafeReconfigureAsync(() => ApplyHeight(settings.Height), requiresBufferRecreate: true, cancellationToken, "Height").ConfigureAwait(false);
+            await ApplyAsync(() => ApplyHeight(settings.Height), requiresBufferRecreate: true, "Height").ConfigureAwait(false);
         }
 
         if ((changedKind is null || changedKind == CameraParameterKind.AcquisitionLineRate) && settings.AcquisitionLineRate.HasValue)
         {
-            await SafeReconfigureAsync(() => ApplyLineRate(settings.AcquisitionLineRate), requiresBufferRecreate: false, cancellationToken, "LineRate").ConfigureAwait(false);
+            await ApplyAsync(() => ApplyLineRate(settings.AcquisitionLineRate), requiresBufferRecreate: false, "LineRate").ConfigureAwait(false);
         }
 
         // ROI 參數 (OffsetX, OffsetY, Width) - 需要 Buffer 重建
         if (changedKind == CameraParameterKind.OffsetX)
         {
-            await SafeReconfigureAsync(() => ApplyOffsetX(settings.OffsetX), requiresBufferRecreate: false, cancellationToken, "OffsetX").ConfigureAwait(false);
+            await ApplyAsync(() => ApplyOffsetX(settings.OffsetX), requiresBufferRecreate: false, "OffsetX").ConfigureAwait(false);
         }
 
         if (changedKind == CameraParameterKind.OffsetY)
         {
-            await SafeReconfigureAsync(() => ApplyOffsetY(settings.OffsetY), requiresBufferRecreate: false, cancellationToken, "OffsetY").ConfigureAwait(false);
+            await ApplyAsync(() => ApplyOffsetY(settings.OffsetY), requiresBufferRecreate: false, "OffsetY").ConfigureAwait(false);
         }
 
         if (changedKind == CameraParameterKind.Width && settings.Width > 0)
         {
-            await SafeReconfigureAsync(() => ApplyWidth(settings.Width), requiresBufferRecreate: true, cancellationToken, "Width").ConfigureAwait(false);
+            await ApplyAsync(() => ApplyWidth(settings.Width), requiresBufferRecreate: true, "Width").ConfigureAwait(false);
         }
     }
 
@@ -530,9 +575,21 @@ public sealed class IdsCameraPort : ICameraPort
             gainAuto.SetCurrentEntry("Off");
         }
 
+        // ⚠ 有些機種（實測 onsemi NOIP1SN1300A）IsWriteable() 回 true，SetCurrentEntry 仍丟
+        // PEAK_RETURN_CODE_BAD_ACCESS「Enum entry is not writable」。選不動就跳過：
+        // 這種相機本來就只有單一 gain，沒有 selector 也照樣能設 Gain 值。
         if (gainSelector?.IsWriteable() == true && gainSelector.HasEntry(selector))
         {
-            gainSelector.SetCurrentEntry(selector);
+            try
+            {
+                gainSelector.SetCurrentEntry(selector);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInformation(
+                    "此相機不接受 GainSelector='{Selector}'（{Message}），略過選擇器、直接套用 Gain 值。",
+                    selector, ex.Message);
+            }
         }
 
         if (gainNode?.IsWriteable() == true)
@@ -1009,6 +1066,61 @@ public sealed class IdsCameraPort : ICameraPort
         _logger.LogDebug("✓ 影像擷取已停止");
     }
 
+    /// <summary>
+    /// 準備 IO 觸發線：選 <c>LineSelector = Line0</c> 並試讀一次 <c>LineStatus</c>。
+    /// 讀不到就是這台相機沒有這條線（或沒權限）——記 warning 但**不阻止相機開啟**，
+    /// 畫面會顯示「只能手動觸發」。
+    /// </summary>
+    private void PrepareTriggerLine()
+    {
+        _triggerLineReady = false;
+        _triggerLinePrev = false;
+        try
+        {
+            lock (_nodeLock)
+            {
+                var selector = _remoteNodeMap?.TryFindNodeEnumeration("LineSelector");
+                if (selector is not null && selector.IsWriteable())
+                    selector.SetCurrentEntry(_options.TriggerLine);
+
+                var status = _remoteNodeMap?.FindNode<peak.core.nodes.BooleanNode>("LineStatus");
+                if (status is null) return;
+
+                _triggerLinePrev = status.Value();   // 試讀一次，順便當初始位準
+                _triggerLineReady = true;
+            }
+            _logger.LogInformation("✓ IO 觸發線 {Line} 就緒（開關按下即觸發檢測）", _options.TriggerLine);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                "讀不到 IO 觸發線 {Line}（{Message}）→ 只能手動觸發。"
+                + "若現場開關確實接在相機上，請確認 Devices:Camera:Ids:TriggerLine 的線號。",
+                _options.TriggerLine, ex.Message);
+        }
+    }
+
+    /// <summary>每幀輪詢一次觸發線；由低變高才發事件（同一次按壓只發一次）。</summary>
+    private void PollTriggerLine()
+    {
+        if (!_triggerLineReady) return;
+        try
+        {
+            bool level;
+            lock (_nodeLock)
+            {
+                level = _remoteNodeMap!.FindNode<peak.core.nodes.BooleanNode>("LineStatus").Value();
+            }
+            var rose = level && !_triggerLinePrev;
+            _triggerLinePrev = level;
+            if (rose) TriggerLineRose?.Invoke(this, EventArgs.Empty);
+        }
+        catch
+        {
+            // 單次讀取失敗不中斷擷取——產線不能因為讀不到一次 IO 就停
+        }
+    }
+
     private void AcquisitionLoop(CancellationToken cancellationToken)
     {
         _logger.LogInformation("▶ 影像擷取迴圈開始");
@@ -1064,6 +1176,10 @@ public sealed class IdsCameraPort : ICameraPort
                 var image = ExtractImage(buffer);
                 _logger.LogTrace("影像提取完成，觸發 FrameReceived 事件");
                 FrameReceived?.Invoke(this, image);
+
+                // IO 觸發線上升緣（開關按下的瞬間）。放在送完影像之後：
+                // 這樣那一幀已經進了環形緩衝，觸發端回頭找得到它。
+                PollTriggerLine();
 
                 successfulFrames++;
                 if (successfulFrames == 1 || successfulFrames % 30 == 0)

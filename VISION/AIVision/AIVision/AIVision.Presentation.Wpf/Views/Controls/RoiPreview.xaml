@@ -1,0 +1,58 @@
+<UserControl x:Class="AIVision.Presentation.Wpf.Views.Controls.RoiPreview"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" d:DesignHeight="300" d:DesignWidth="400"
+             Background="#FF111111">
+    <!--
+      影像 + ROI 疊層。
+
+      ⚠ 疊層走 Canvas，不是把框畫進點陣圖：
+        ① 每幀重編碼一張圖只為了畫個框，成本很高（1280x1024 PNG 編碼 ~10-30ms）
+        ② 疊層才能做「拖曳重新框選」
+      座標基準一律用 ViewHost（Grid，尺寸可靠）——Canvas.ActualWidth 在某些機器/時序會回 0，
+      那會造成除以零、ROI 消失或框選失效（相機版踩過）。
+    -->
+    <Border x:Name="HostBorder" Background="Transparent" ClipToBounds="True"
+            MouseLeftButtonDown="OnMouseDown" MouseMove="OnMouseMove" MouseLeftButtonUp="OnMouseUp">
+        <Grid x:Name="ViewHost">
+            <Image x:Name="ImgLive" Stretch="Uniform" />
+
+            <!-- 沒影像時要講原因，不要只留一片黑 -->
+            <TextBlock x:Name="TxtHint" Foreground="#FFAAAAAA" FontSize="12" TextWrapping="Wrap"
+                       TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Margin="16" />
+
+            <Canvas x:Name="OverlayCanvas" IsHitTestVisible="False">
+                <!-- 目前生效的 ROI（永遠畫出來，與送去辨識的範圍完全一致） -->
+                <Rectangle x:Name="RoiRect" Stroke="#FFFFC400" StrokeThickness="2"
+                           Visibility="Collapsed" />
+                <Border x:Name="RoiLabelBox" Background="#CC000000" CornerRadius="3" Padding="4,1"
+                        Visibility="Collapsed">
+                    <TextBlock x:Name="RoiLabel" Text="ROI" Foreground="#FFFFC400" FontSize="11"
+                               FontWeight="Bold" />
+                </Border>
+
+                <!-- 拖曳中的框選矩形 -->
+                <Rectangle x:Name="RoiSelRect" Stroke="#FF4FC3F7" StrokeThickness="2"
+                           StrokeDashArray="4 3" Fill="#204FC3F7" Visibility="Collapsed" />
+            </Canvas>
+
+            <!-- 座標面板（純顯示，不影響作動） -->
+            <Border x:Name="CoordPanel" Background="#CC000000" CornerRadius="4" Padding="8,4"
+                    HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="8"
+                    Visibility="Collapsed">
+                <TextBlock x:Name="TxtCoord" Foreground="#FFFFC400" FontSize="11" />
+            </Border>
+
+            <!-- 框選模式提示 -->
+            <Border x:Name="PickHint" Background="#CC1565C0" CornerRadius="4" Padding="10,5"
+                    HorizontalAlignment="Center" VerticalAlignment="Top" Margin="8"
+                    Visibility="Collapsed">
+                <TextBlock Text="框選 ROI：按住左鍵拖出範圍，放開完成（Esc 取消）"
+                           Foreground="White" FontSize="11" />
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>

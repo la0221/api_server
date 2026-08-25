@@ -1,8 +1,13 @@
 {
+  "//": "IDS 相機參數。**這份才是真正被讀的**（IdsCameraControlPort 讀寫；相機面板按儲存會寫回這裡）。",
+  "//2": "⚠ appsettings.json 的 Devices:Camera:Options 那塊**沒有任何程式在讀**，別在那邊調。",
+  "//3": "值取自 D:\\模號檢驗 OCR_demo/app/config.py 的實測調校結果：IDS_EXPOSURE_US=1300、IDS_GAIN=1.0。",
+  "//4": "沿革：1500µs 過曝 → 1300µs（mean~89 / overexp 4.7%）；2026-06-26 相機變亮，1300µs→mean107/overexp7.1%，曾試 900µs（mean76/overexp0.89）但使用者要求維持 1300。光照再變就重掃。",
+  "//5": "原本是 15000µs / Gain 2.0（IdsCameraSettings 的類別預設值），比實測值大一個數量級 → 整片過曝。",
   "Preferred": [],
-  "ExposureTimeUs": 15000.0,
+  "ExposureTimeUs": 1300.0,
   "GainSelector": "AnalogAll",
-  "Gain": 2.0,
+  "Gain": 1.0,
   "Height": 1024,
   "AcquisitionLineRate": null
 }

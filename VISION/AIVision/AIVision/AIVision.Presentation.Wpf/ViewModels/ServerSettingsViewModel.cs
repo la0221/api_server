@@ -315,18 +315,50 @@ public partial class ServerSettingsViewModel : ObservableObject
         TestResult = $"TCP 探測中… {uri.Host}:{uri.Port}";
         try
         {
-            using var tcp = new System.Net.Sockets.TcpClient();
+            // ⚠ 不可以只做 ConnectAsync(host, port) 就下結論。
+            // 主機名可能同時解析到 IPv6 與 IPv4（Windows 的 localhost = ::1 + 127.0.0.1，且 ::1 排前面）。
+            // 對方若只綁 IPv4，.NET 會先試 ::1 卡住約 2 秒才退回 —— 剛好吃掉這裡 2 秒的預算，
+            // 於是按鈕回報「埠關閉/不可達 → 去查防火牆」，但埠其實是通的。
+            // 這比無聲失敗更糟：它給的是明確而錯誤的指示（2026-08-24 UI 實測）。
+            // 對策：把解析出來的位址**逐一**試，並講出是哪一個位址通的。
             var sw = Stopwatch.StartNew();
-            var connectTask = tcp.ConnectAsync(uri.Host, uri.Port);
-            var done = await Task.WhenAny(connectTask, Task.Delay(2000));
+            var addresses = await ResolveAsync(uri.Host).ConfigureAwait(true);
+            var failures = new List<string>();
+            string? okAddr = null;
+            long okMs = 0;
+
+            foreach (var addr in addresses)
+            {
+                var one = Stopwatch.StartNew();
+                using var tcp = new System.Net.Sockets.TcpClient();
+                var connectTask = tcp.ConnectAsync(addr, uri.Port);
+                var done = await Task.WhenAny(connectTask, Task.Delay(2000)).ConfigureAwait(true);
+                one.Stop();
+                if (done == connectTask && tcp.Connected)
+                {
+                    okAddr = addr.ToString();
+                    okMs = one.ElapsedMilliseconds;
+                    break;
+                }
+                if (done != connectTask) _ = connectTask.ContinueWith(t => { _ = t.Exception; }, TaskScheduler.Default);
+                failures.Add($"{addr}（{one.ElapsedMilliseconds}ms）");
+            }
             sw.Stop();
 
-            if (done == connectTask && tcp.Connected)
-                TestResult = $"✅ 埠開啟：{uri.Host}:{uri.Port} 有服務在聽（TCP {sw.ElapsedMilliseconds}ms）。\n" +
-                             "   若 API 仍連不上，問題在服務本身（HTTP 層）而非網路/防火牆。";
+            if (okAddr is not null)
+            {
+                var others = failures.Count > 0
+                    ? $"\n   ⚠ 但 {string.Join("、", failures)} 不通——對方可能只綁了其中一種 IP 版本。" +
+                      "\n   　 若送檢偶爾很慢，把位址改用**能通的那個 IP** 可以省掉先試不通那邊的等待。"
+                    : "";
+                TestResult = $"✅ 埠開啟：{uri.Host}:{uri.Port} 有服務在聽（{okAddr}，TCP {okMs}ms）。\n" +
+                             "   若 API 仍連不上，問題在服務本身（HTTP 層）而非網路/防火牆。" + others;
+            }
             else
-                TestResult = $"❌ 埠關閉/不可達：{uri.Host}:{uri.Port}（{sw.ElapsedMilliseconds}ms 無回應）。\n" +
+            {
+                TestResult = $"❌ 埠關閉/不可達：{uri.Host}:{uri.Port}（試過 {string.Join("、", failures)}）。\n" +
                              "   → 該機器沒開 server、埠號錯，或防火牆未放行 —— 先解這個再談 API。";
+            }
         }
         catch (Exception ex)
         {
@@ -336,6 +368,14 @@ public partial class ServerSettingsViewModel : ObservableObject
         {
             IsTesting = false;
         }
+    }
+
+    /// <summary>把 host 解析成要逐一嘗試的位址；本身就是 IP 就直接用。解析不到回空。</summary>
+    private static async Task<System.Net.IPAddress[]> ResolveAsync(string host)
+    {
+        if (System.Net.IPAddress.TryParse(host, out var literal)) return new[] { literal };
+        try { return await System.Net.Dns.GetHostAddressesAsync(host).ConfigureAwait(false); }
+        catch { return Array.Empty<System.Net.IPAddress>(); }
     }
 
     /// <summary>trim + 去尾斜線；缺 scheme 自動補 http://；非法回 null。</summary>

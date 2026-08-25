@@ -1,0 +1,284 @@
+<Window x:Class="AIVision.Presentation.Server.Views.StationDetailWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Server.ViewModels"
+        mc:Ignorable="d"
+        Title="站點細節"
+        Width="1060"
+        Height="760"
+        MinWidth="860"
+        MinHeight="600"
+        Background="{StaticResource BackgroundGrayBrush}"
+        WindowStartupLocation="CenterOwner"
+        d:DataContext="{d:DesignInstance vm:StationDetailViewModel, IsDesignTimeCreatable=False}">
+    <Window.Resources>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="#FF2196F3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF1976D2" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#FFBDBDBD" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- 條列式的一列：• 標籤　值 -->
+        <Style x:Key="BulletLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#FF888888" />
+            <Setter Property="Width" Value="120" />
+        </Style>
+        <Style x:Key="BulletValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#FF333333" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- 標題列 -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="18,14">
+            <Grid>
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse Width="14" Height="14" VerticalAlignment="Center">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="#FFCCCCCC" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding InferReady}" Value="True">
+                                        <Setter Property="Fill" Value="{StaticResource OkGreenBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="{Binding GroupName}" FontSize="20" FontWeight="Bold"
+                               Foreground="#FF333333" Margin="10,0,0,0" VerticalAlignment="Center" />
+                    <Border Background="#FFEFF5FA" CornerRadius="4" Padding="8,3" Margin="12,0,0,0"
+                            VerticalAlignment="Center">
+                        <TextBlock Text="{Binding ReadyText}" FontSize="11" Foreground="#FF1378AA" />
+                    </Border>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <TextBlock Text="{Binding LastCheckedText}" FontSize="11" Foreground="#FF999999"
+                               VerticalAlignment="Center" Margin="0,0,12,0" />
+                    <Button Content="重新整理" Command="{Binding RefreshCommand}"
+                            Style="{StaticResource PrimaryButton}" Padding="14,6" FontSize="13" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,16,16,0">
+            <StackPanel>
+
+                <!-- ① 這個站點在做什麼 -->
+                <Border Background="White" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="這個站點" FontSize="15" FontWeight="SemiBold"
+                                   Foreground="#FF444444" Margin="0,0,0,10" />
+                        <TextBlock Text="{Binding PurposeText}" Style="{StaticResource BulletValue}" />
+                    </StackPanel>
+                </Border>
+
+                <!-- ② 引擎與模型（條列，可切版） -->
+                <Border Background="White" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,12">
+                            <TextBlock Text="引擎與模型" FontSize="15" FontWeight="SemiBold" Foreground="#FF444444" />
+                            <TextBlock Text="換版本即刻生效，不必改設定檔重啟（⚠ 只影響本次執行）"
+                                       FontSize="11" Foreground="#FF999999"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Engines}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:ModelPoolRow}">
+                                    <Border BorderThickness="1" BorderBrush="#FFE6E9EC" Background="#FFFAFBFC"
+                                            CornerRadius="10" Padding="14,12" Margin="0,0,0,10">
+                                        <StackPanel>
+                                            <Grid>
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding EngineName}" FontSize="14"
+                                                               FontWeight="SemiBold" Foreground="#FF333333" />
+                                                    <TextBlock Text="{Binding TaskKey}" FontSize="11"
+                                                               Foreground="#FFAAAAAA" Margin="8,0,0,0"
+                                                               VerticalAlignment="Center" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                    <ComboBox ItemsSource="{Binding Versions}"
+                                                              SelectedItem="{Binding SelectedVersion, Mode=TwoWay}"
+                                                              IsEnabled="{Binding CanSwitch}"
+                                                              Width="150" Height="30" FontSize="13"
+                                                              VerticalContentAlignment="Center" />
+                                                    <Button Content="設為現用" Command="{Binding ApplyCommand}"
+                                                            IsEnabled="{Binding CanApply}"
+                                                            Style="{StaticResource PrimaryButton}"
+                                                            Padding="14,6" FontSize="13" FontWeight="SemiBold"
+                                                            Margin="8,0,0,0" />
+                                                </StackPanel>
+                                            </Grid>
+
+                                            <!-- 條列式細節 -->
+                                            <StackPanel Margin="0,10,0,0">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <TextBlock Text="•  現用版本" Style="{StaticResource BulletLabel}" />
+                                                    <TextBlock Text="{Binding CurrentVersion}"
+                                                               Style="{StaticResource BulletValue}"
+                                                               FontWeight="Bold" Foreground="#FF1378AA" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <TextBlock Text="•  已載入" Style="{StaticResource BulletLabel}" />
+                                                    <TextBlock Text="{Binding LoadedText}" Style="{StaticResource BulletValue}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <TextBlock Text="•  檔案組成" Style="{StaticResource BulletLabel}" />
+                                                    <TextBlock Text="{Binding FilesText}" Style="{StaticResource BulletValue}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <TextBlock Text="•  登錄夾" Style="{StaticResource BulletLabel}" />
+                                                    <TextBlock Text="{Binding Root}" Style="{StaticResource BulletValue}" />
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <TextBlock Text="•  說明" Style="{StaticResource BulletLabel}" />
+                                                    <TextBlock Text="{Binding Note}" Style="{StaticResource BulletValue}"
+                                                               Foreground="#FF888888" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <!-- ③ 收到的圖：要不要留、存在哪 -->
+                <Border Background="White" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="收到的圖" FontSize="15" FontWeight="SemiBold"
+                                   Foreground="#FF444444" Margin="0,0,0,10" />
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="•  留存收到的圖" Style="{StaticResource BulletLabel}" Width="120" />
+                            <CheckBox IsChecked="{Binding SaveImages, Mode=TwoWay}" VerticalAlignment="Center"
+                                      Content="開啟後，各站送進來的圖會存一份在本機" FontSize="13" Foreground="#FF333333" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="•  存放點" Style="{StaticResource BulletLabel}" />
+                            <TextBlock Text="{Binding ImageFolder}" Style="{StaticResource BulletValue}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="•  目前狀況" Style="{StaticResource BulletLabel}" />
+                            <TextBlock Text="{Binding ImageStatText}" Style="{StaticResource BulletValue}" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                            <TextBlock Text="•  提醒" Style="{StaticResource BulletLabel}" />
+                            <TextBlock Style="{StaticResource BulletValue}" Foreground="#FF888888"
+                                       Text="Route A 的設計是「原圖留站端、父端只收前處理小圖」，所以預設不留存。這裡打開只影響本次執行；要永久生效請改 appsettings 的 ReceivedImages:Save。既有紀錄不會回溯補圖。" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- ④ 這個站點的最近辨識 -->
+                <Border Background="White" CornerRadius="12" Padding="18" Margin="0,0,0,16">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <TextBlock Text="最近辨識（本站點）" FontSize="15" FontWeight="SemiBold" Foreground="#FF444444" />
+                            <TextBlock Text="雙擊任一列看單筆詳細"
+                                       FontSize="11" Foreground="#FF999999"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <DataGrid ItemsSource="{Binding RecentItems}" Height="300"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#FFEEEEEE" BorderThickness="0"
+                                  Background="Transparent" RowBackground="White"
+                                  AlternatingRowBackground="#FFFAFBFC" FontSize="13">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NeedsReview}" Value="True">
+                                            <Setter Property="Background" Value="#FFFBF3E0" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasReading}" Value="False">
+                                            <Setter Property="Foreground" Value="#FF999999" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Ok}" Value="False">
+                                            <Setter Property="Background" Value="#FFFDECE9" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.InputBindings>
+                                <MouseBinding MouseAction="LeftDoubleClick"
+                                              Command="{Binding SelectedItem.OpenDetailCommand,
+                                                        RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                            </DataGrid.InputBindings>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="時間" Binding="{Binding Time}" Width="80" />
+                                <DataGridTextColumn Header="來源站" Binding="{Binding StationId}" Width="80" />
+                                <DataGridTextColumn Header="讀值" Binding="{Binding Reading}" Width="110">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="FontSize" Value="14" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="收到大小" Binding="{Binding SizeText}" Width="80" />
+                                <DataGridTextColumn Header="前處理在哪" Binding="{Binding PreprocessText}" Width="90" />
+                                <DataGridTextColumn Header="模型版本" Binding="{Binding ModelVersion}" Width="80" />
+                                <DataGridTextColumn Header="推論 ms" Binding="{Binding ElapsedMs}" Width="70" />
+                                <DataGridTextColumn Header="留圖" Binding="{Binding ImageText}" Width="60" />
+                                <DataGridTextColumn Header="站端原圖位置" Binding="{Binding EdgeRawPath}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <TextBlock Text="這個站點還沒收到任何送檢。"
+                                   FontSize="12" Foreground="#FFAAAAAA" Margin="0,8,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RecentItems.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="2" Background="#FF2D2D30" Padding="16,8">
+            <TextBlock Text="{Binding ActionMessage}" Foreground="#FFDDDDDD" FontSize="12"
+                       TextTrimming="CharacterEllipsis" />
+        </Border>
+    </Grid>
+</Window>

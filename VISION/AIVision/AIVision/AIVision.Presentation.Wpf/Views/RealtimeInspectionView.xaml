@@ -1,0 +1,432 @@
+﻿<Window x:Class="AIVision.Presentation.Wpf.Views.RealtimeInspectionView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        xmlns:ctl="clr-namespace:AIVision.Presentation.Wpf.Views.Controls"
+        mc:Ignorable="d"
+        Title="模號穴號實時檢測（觸發式）"
+        Width="1280" Height="820"
+        Background="#FFF2F2F2"
+        WindowStartupLocation="CenterOwner"
+        d:DataContext="{d:DesignInstance vm:RealtimeInspectionViewModel, IsDesignTimeCreatable=False}">
+    <Window.Resources>
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="#FF2196F3" />
+            <Setter Property="Padding" Value="18,8" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF1976D2" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#FFBDBDBD" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="StopButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#FF757575" />
+        </Style>
+        <Style x:Key="TriggerButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#FFFB8C00" />
+        </Style>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Foreground" Value="#FF888888" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+        </Style>
+        <Style x:Key="StatCaption" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="#FF555555" />
+        </Style>
+        <Style x:Key="StatValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="30" />
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Padding" Value="6,0" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ── 標題 + 設定 ── -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1" Padding="16,12">
+            <StackPanel>
+                <TextBlock Text="模號穴號實時檢測（觸發式）" FontSize="18" FontWeight="Bold" Foreground="#FF333333" />
+                <TextBlock FontSize="11" Foreground="#FF888888" TextWrapping="Wrap" Margin="0,4,0,10"
+                           Text="相機每一幀進環形緩衝；觸發只記時刻，之後在擷取窗內「回頭找」工件完整進框的那一幀 → 前處理 → 送父端讀字（逾時改本機）→ 站端拿工單判定 → 存檔 → 混料/NG 吹氣。" />
+                <WrapPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="站號" Style="{StaticResource FieldLabel}" />
+                        <TextBox Text="{Binding StationId}" Width="110"
+                                 IsEnabled="{Binding CanStart}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="工單" Style="{StaticResource FieldLabel}" />
+                        <TextBox Text="{Binding WorkOrder}" Width="130" IsEnabled="{Binding CanStart}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="預期模號" Style="{StaticResource FieldLabel}" />
+                        <TextBox Text="{Binding ExpectedMohao}" Width="90" IsEnabled="{Binding CanStart}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="預期穴號" Style="{StaticResource FieldLabel}" />
+                        <TextBox Text="{Binding ExpectedXuehao}" Width="90" IsEnabled="{Binding CanStart}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,0" VerticalAlignment="Bottom">
+                        <Button Content="帶入工單" Command="{Binding LoadWorkOrderCommand}"
+                                Style="{StaticResource PrimaryButton}" Padding="12,5" FontSize="12"
+                                IsEnabled="{Binding CanStart}"
+                                ToolTip="從目前進行中的工單帶入工單號與預期模號/穴號。人工填容易 key 錯，key 錯就是整批誤判。" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="擷取窗 ms" Style="{StaticResource FieldLabel}"
+                                   ToolTip="觸發後在這段時間內回頭找工件完整進框的那一幀。相機版實證值 800ms。" />
+                        <TextBox Text="{Binding CaptureWindowMs}" Width="80" IsEnabled="{Binding CanStart}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,16,0">
+                        <TextBlock Text="父端預算 ms" Style="{StaticResource FieldLabel}"
+                                   ToolTip="超過就改本機接管。實測父端自報 42–194ms，太小會讓很多片子落到本機（較舊的雙 head）。" />
+                        <TextBox Text="{Binding ServerBudgetMs}" Width="80" IsEnabled="{Binding CanStart}" />
+                    </StackPanel>
+                </WrapPanel>
+                <!-- 預期值哪來的一定要講：人工填的與工單不同步時，畫面是唯一線索 -->
+                <TextBlock Text="{Binding WorkOrderHint}" FontSize="11" TextWrapping="Wrap" Margin="0,8,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#FFB26A00" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding ExpectedFromWorkOrder}" Value="True">
+                                    <Setter Property="Foreground" Value="#FF2E7D32" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <!-- ── 狀態列：SRV 燈 + 動作 ── -->
+        <Border Grid.Row="1" Background="#FF2D2D30" Padding="16,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- SRV：現在走哪條路。本機接管時要一眼看得出來，因為本機是較舊的模型 -->
+                    <Border CornerRadius="4" Padding="10,5" BorderThickness="1">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#FF1B5E20" />
+                                <Setter Property="BorderBrush" Value="#FF2E7D32" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CentralOnline}" Value="False">
+                                        <Setter Property="Background" Value="#FF7A4A00" />
+                                        <Setter Property="BorderBrush" Value="#FFB26A00" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsRunning}" Value="False">
+                                        <Setter Property="Background" Value="#FF3A3A3D" />
+                                        <Setter Property="BorderBrush" Value="#FF505054" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="SRV" FontSize="11" FontWeight="Bold" Foreground="White"
+                                       VerticalAlignment="Center" />
+                            <TextBlock FontSize="11" Foreground="#FFDDDDDD" Margin="8,0,0,0"
+                                       VerticalAlignment="Center">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="中央推論" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding CentralOnline}" Value="False">
+                                                <Setter Property="Text" Value="本機接管中（模型較舊）" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsRunning}" Value="False">
+                                                <Setter Property="Text" Value="未啟動" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                    <!-- 觸發線狀態：讀不到的話現場按開關完全沒反應，一定要看得見 -->
+                    <Border CornerRadius="4" Padding="10,5" Margin="10,0,0,0" BorderThickness="1">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="#FF7A1F1F" />
+                                <Setter Property="BorderBrush" Value="#FFB03030" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding TriggerLineReady}" Value="True">
+                                        <Setter Property="Background" Value="#FF1B5E20" />
+                                        <Setter Property="BorderBrush" Value="#FF2E7D32" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsRunning}" Value="False">
+                                        <Setter Property="Background" Value="#FF3A3A3D" />
+                                        <Setter Property="BorderBrush" Value="#FF505054" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <TextBlock Text="{Binding TriggerLineText}" FontSize="11" Foreground="White"
+                                   VerticalAlignment="Center" />
+                    </Border>
+                    <TextBlock Text="{Binding StatusText}" Foreground="#FFDDDDDD" FontSize="12"
+                               VerticalAlignment="Center" Margin="14,0,0,0" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <Button Content="手動觸發" Command="{Binding ManualTriggerCommand}"
+                            Style="{StaticResource TriggerButton}" FontSize="13"
+                            IsEnabled="{Binding IsRunning}" />
+                    <Button Content="開始" Command="{Binding StartCommand}" Margin="10,0,0,0"
+                            Style="{StaticResource PrimaryButton}" FontSize="13" FontWeight="SemiBold"
+                            IsEnabled="{Binding CanStart}" />
+                    <Button Content="停止" Command="{Binding StopCommand}" Margin="10,0,0,0"
+                            Style="{StaticResource StopButton}" FontSize="13"
+                            IsEnabled="{Binding CanStop}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── 五個數字（要能相加）── -->
+        <Border Grid.Row="2" Background="#FFE3E5E8" Padding="16,12" Margin="0,0,0,0">
+            <StackPanel>
+                <UniformGrid Columns="6" Rows="1">
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="觸發" Style="{StaticResource StatCaption}"
+                                   ToolTip="承諾要有交代的筆數。下面四格加起來必須等於它。" />
+                        <TextBlock Text="{Binding TriggeredCount}" Style="{StaticResource StatValue}" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="中央判定" Style="{StaticResource StatCaption}" />
+                        <TextBlock Text="{Binding CentralCount}" Style="{StaticResource StatValue}"
+                                   Foreground="#FF2E7D32" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="本機接管" Style="{StaticResource StatCaption}"
+                                   ToolTip="父端逾時或不可用時改用本機雙 head（較舊）。數字偏高就把父端預算調大。" />
+                        <TextBlock Text="{Binding LocalCount}" Style="{StaticResource StatValue}"
+                                   Foreground="#FFEF6C00" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="擷取失誤" Style="{StaticResource StatCaption}"
+                                   ToolTip="整個擷取窗都沒有一幀有完整鏡片在框。不是不良品、沒有吹氣——產線上多半代表重複觸發拍照，要查觸發訊號。" />
+                        <TextBlock Text="{Binding CaptureFaultCount}" Style="{StaticResource StatValue}"
+                                   Foreground="#FFC62828" />
+                    </StackPanel>
+                    <StackPanel Margin="0,0,12,0">
+                        <TextBlock Text="待補" Style="{StaticResource StatCaption}"
+                                   ToolTip="還在排隊等處理的觸發。" />
+                        <TextBlock Text="{Binding PendingCount}" Style="{StaticResource StatValue}"
+                                   Foreground="#FF1378AA" />
+                    </StackPanel>
+                    <StackPanel>
+                        <TextBlock Text="積壓丟棄" Style="{StaticResource StatCaption}"
+                                   ToolTip="積壓超過上限而洩壓丟棄（未列入觸發數）。產線遠快於辨識時才會出現。" />
+                        <TextBlock Text="{Binding DroppedCount}" Style="{StaticResource StatValue}"
+                                   Foreground="#FF6A1B9A" />
+                    </StackPanel>
+                </UniformGrid>
+
+                <!-- 帳平不平：不平代表有一條路沒記帳，一定要看得見 -->
+                <Border CornerRadius="6" Padding="10,6" Margin="0,10,0,0">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="#FFEFF5FA" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding LedgerBalanced}" Value="False">
+                                    <Setter Property="Background" Value="#FFFDECE9" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding LedgerText}" FontSize="12" TextWrapping="Wrap">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#FF1378AA" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding LedgerBalanced}" Value="False">
+                                        <Setter Property="Foreground" Value="#FF8B2020" />
+                                        <Setter Property="FontWeight" Value="Bold" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </Border>
+            </StackPanel>
+        </Border>
+
+        <!-- ── 最近幾片 + 執行紀錄 ── -->
+        <Grid Grid.Row="3" Margin="16,12,16,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.1*" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="1.6*" />
+                <ColumnDefinition Width="8" />
+                <ColumnDefinition Width="0.9*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- ── 實時畫面（含 ROI 框）── -->
+            <Border Grid.Column="0" Background="White" CornerRadius="10" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Row="0" Text="相機即時畫面" FontSize="14" FontWeight="SemiBold"
+                               Foreground="#FF444444" Margin="0,0,0,6" />
+
+                    <!-- ROI 疊層走 Canvas，不畫進點陣圖：省掉每幀重編碼，而且才能拖曳重框 -->
+                    <ctl:RoiPreview x:Name="Preview" Grid.Row="1" MinHeight="200" />
+
+                    <!-- ROI 的四個功能一律走 RoiToolBar，不在這裡另外長按鈕（見該控制項註解） -->
+                    <ctl:RoiToolBar x:Name="RoiTools" Grid.Row="2" Margin="0,8,0,0" />
+
+                    <!-- 最近一片的原圖 vs 前處理圖：看前處理有沒有裁對 -->
+                    <Grid Grid.Row="3" Margin="0,8,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="6" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="最近一片 原圖" Style="{StaticResource FieldLabel}" />
+                            <Border Background="#FF111111" CornerRadius="4" Height="70">
+                                <Image Source="{Binding LastRawImage}" Stretch="Uniform" />
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2">
+                            <TextBlock Text="送出的前處理圖" Style="{StaticResource FieldLabel}" />
+                            <Border Background="#FFEEEEEE" CornerRadius="4" Height="70">
+                                <Image Source="{Binding LastStripImage}" Stretch="Uniform" />
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Background="White" CornerRadius="10" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="最近幾片（新的在最上）" FontSize="14" FontWeight="SemiBold"
+                               Foreground="#FF444444" Margin="0,0,0,8" />
+                    <DataGrid Grid.Row="1" ItemsSource="{Binding Recent}" AutoGenerateColumns="False"
+                              IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#FFEEEEEE" BorderThickness="0"
+                              RowHeaderWidth="0" FontSize="12">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsReject}" Value="True">
+                                        <Setter Property="Background" Value="#FFFDECE9" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsLocal}" Value="True">
+                                        <Setter Property="Foreground" Value="#FF9A5B00" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="時間" Binding="{Binding Time}" Width="70" />
+                            <DataGridTextColumn Header="pieceId" Binding="{Binding PieceId}" Width="150" />
+                            <DataGridTextColumn Header="讀值" Binding="{Binding Reading}" Width="90" />
+                            <DataGridTextColumn Header="工單預期" Binding="{Binding Expected}" Width="90" />
+                            <DataGridTextColumn Header="判定" Binding="{Binding Outcome}" Width="80" />
+                            <DataGridTextColumn Header="信心" Binding="{Binding Conf}" Width="80" />
+                            <DataGridTextColumn Header="來源" Binding="{Binding Source}" Width="55" />
+                            <DataGridTextColumn Header="模型" Binding="{Binding ModelVersion}" Width="70" />
+                            <DataGridTextColumn Header="耗時" Binding="{Binding Elapsed}" Width="70" />
+                            <DataGridTextColumn Header="吹氣" Binding="{Binding Blow}" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="4" Background="White" CornerRadius="10" Padding="12">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                        <TextBlock Text="執行紀錄" FontSize="14" FontWeight="SemiBold" Foreground="#FF444444" />
+                        <Button Content="清除" Command="{Binding ClearMessagesCommand}"
+                                HorizontalAlignment="Right" Style="{StaticResource StopButton}"
+                                Padding="10,3" FontSize="11" />
+                    </Grid>
+                    <ListBox Grid.Row="1" ItemsSource="{Binding Messages}" BorderThickness="0"
+                             FontSize="11" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ── 磁碟 + 路徑 ── -->
+        <Border Grid.Row="4" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,1,0,0" Padding="16,10">
+            <StackPanel>
+                <TextBlock Text="{Binding DiskText}" FontSize="12" TextWrapping="Wrap">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="#FF666666" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding DiskLevel}" Value="1">
+                                    <Setter Property="Foreground" Value="#FFB26A00" />
+                                    <Setter Property="FontWeight" Value="SemiBold" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding DiskLevel}" Value="2">
+                                    <Setter Property="Foreground" Value="#FFC62828" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock FontSize="11" Foreground="#FF999999" TextWrapping="Wrap" Margin="0,4,0,0">
+                    <Run Text="紀錄：" /><Run Text="{Binding RecordRootText, Mode=OneWay}" />
+                    <Run Text="　｜　事件log：" /><Run Text="{Binding LogPathText, Mode=OneWay}" />
+                </TextBlock>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

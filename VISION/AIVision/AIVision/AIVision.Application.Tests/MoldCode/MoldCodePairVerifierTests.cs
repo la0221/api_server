@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using AIVision.Domain.MoldCode;
 using Xunit;
 
@@ -47,21 +47,32 @@ public class MoldCodePairVerifierTests
     }
 
     [Fact]
-    public void MohaoMismatch_LowConfidence_TrustsOperator()
+    public void MohaoMismatch_LowConfidence_ReturnsSkip_FailClosed()
     {
-        // 模號不符但信心 < 0.60 → 模型搖擺，採信操作員，不剔除。
+        // 模號不符且信心 < 0.60 → **不採信操作員**（2026-08-25 現場拍板）。
+        // 舊行為是 TrustInput 當良品放行；但真混料時操作員填的還是原料號，
+        // 「採信操作員」正好放掉最該攔的那片（fail-open）。改為 Skip：不放行、也不誤吹。
         var d = Decide("M101", "08", PairObservation.Read("M60", 0.50, "08", 0.99));
-        Assert.Equal(PairVerifyOutcome.TrustInput, d.Outcome);
-        Assert.False(d.ShouldReject);
-        Assert.Equal("M101/08", d.ClassifiedAs);
+        Assert.Equal(PairVerifyOutcome.Skip, d.Outcome);
+        Assert.False(d.ShouldReject);   // 不吹：低信心多半是爛圖，那是取像問題不是不良品
     }
 
     [Fact]
-    public void XuehaoMismatch_LowConfidence_TrustsOperator()
+    public void XuehaoMismatch_LowConfidence_ReturnsSkip_FailClosed()
     {
-        // 穴號不符但信心 < 0.85（如 11↔17 搖擺）→ 採信操作員。
+        // 穴號不符且信心 < 0.85 → 同上，不採信操作員。
         var d = Decide("M101", "08", PairObservation.Read("M101", 0.99, "03", 0.80));
-        Assert.Equal(PairVerifyOutcome.TrustInput, d.Outcome);
+        Assert.Equal(PairVerifyOutcome.Skip, d.Outcome);
+        Assert.False(d.ShouldReject);
+    }
+
+    [Fact]
+    public void InvalidReading_LowConfidence_ReturnsSkip_NotTrustInput()
+    {
+        // 現場實據 2026-08-25 14:20:09：讀出 "M10/M5"（穴號 M5 是不可能的值）
+        // conf=0.31/0.59 → 舊行為當良品放行。新行為：Skip，不放行。
+        var d = Decide("M58", "15", PairObservation.Read("M10", 0.31, "M5", 0.59));
+        Assert.Equal(PairVerifyOutcome.Skip, d.Outcome);
         Assert.False(d.ShouldReject);
     }
 

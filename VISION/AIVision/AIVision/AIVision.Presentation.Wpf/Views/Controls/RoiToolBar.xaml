@@ -1,0 +1,85 @@
+<UserControl x:Class="AIVision.Presentation.Wpf.Views.Controls.RoiToolBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" d:DesignWidth="420">
+    <!--
+      ROI 判定區 —— **四個功能全部集中在這一組**（自訂範圍／重設／顯示框／顯示矩形參數）。
+
+      ⚠ 不要再把 ROI 的按鈕零散加到別的地方。要在新畫面用，就放
+        <ctl:RoiPreview x:Name="Preview" /> 和 <ctl:RoiToolBar x:Name="RoiTools" />
+        然後 code-behind 一行 RoiTools.Attach(Preview, roi)。
+        散開的後果是：現場問「ROI 在哪裡改」要找三個地方，改了又不知道哪一個才生效。
+    -->
+    <UserControl.Resources>
+        <Style x:Key="RoiActionButton" TargetType="Button">
+            <Setter Property="Padding" Value="10,4" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="Background" Value="#FF2D6CDF" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                                CornerRadius="4" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.85" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="Bd" Property="Opacity" Value="0.4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RoiResetButton" TargetType="Button" BasedOn="{StaticResource RoiActionButton}">
+            <Setter Property="Background" Value="#FF6B7280" />
+        </Style>
+    </UserControl.Resources>
+
+    <StackPanel x:Name="Root">
+        <TextBlock x:Name="TxtTitle" Text="ROI 判定區（＝送去辨識的範圍）"
+                   FontSize="12" FontWeight="SemiBold" Margin="0,0,0,5"
+                   Foreground="{Binding LabelBrush, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+
+        <WrapPanel Orientation="Horizontal">
+            <Button x:Name="BtnPick" Content="自訂 ROI 範圍" Click="OnPick"
+                    Style="{StaticResource RoiActionButton}"
+                    ToolTip="在即時畫面上按住左鍵拖出範圍，放開即存檔生效（Esc 取消）" />
+            <Button x:Name="BtnReset" Content="恢復預設範圍" Click="OnReset"
+                    Style="{StaticResource RoiResetButton}"
+                    ToolTip="回到出廠校正值（比例 0.227, 0.000, 0.570, 0.596）" />
+            <CheckBox x:Name="ChkShow" Content="顯示 ROI 框" IsChecked="True"
+                      Click="OnToggleShow" VerticalAlignment="Center" FontSize="11"
+                      Margin="4,0,10,0"
+                      Foreground="{Binding LabelBrush, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+            <CheckBox x:Name="ChkCoords" Content="顯示矩形參數" IsChecked="True"
+                      Click="OnToggleCoords" VerticalAlignment="Center" FontSize="11"
+                      ToolTip="只是顯示四角座標／尺寸／比例，不影響 ROI 裁切、辨識等作動"
+                      Foreground="{Binding LabelBrush, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+        </WrapPanel>
+
+        <!-- 目前生效值：關掉框也查得到，現場對帳用 -->
+        <TextBlock x:Name="TxtCurrent" FontSize="11" Margin="0,5,0,0" TextWrapping="Wrap"
+                   Text="目前 ROI：（等待影像）"
+                   Foreground="{Binding ValueBrush, RelativeSource={RelativeSource AncestorType=UserControl}}" />
+
+        <!-- 最近一則訊息（框選完成/太小/已重設…）。主頁沒有執行紀錄可寫，訊息就顯示在這裡，
+             不然使用者按了按鈕會不知道到底有沒有成功。 -->
+        <TextBlock x:Name="TxtNotice" FontSize="11" Margin="0,4,0,0" TextWrapping="Wrap"
+                   Foreground="#FF34A853" Visibility="Collapsed" />
+
+        <TextBlock x:Name="TxtHelp" FontSize="10" Margin="0,3,0,0" TextWrapping="Wrap"
+                   Foreground="{Binding HintBrush, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                   Text="黃框＝判定區，與實際送去辨識的範圍完全一致。工件必須完整落在框內才會被採用；框沒對準就是擷取失誤或讀值錯的頭號原因。ROI 存成「影像比例」放在 configs/roi.json，換相機或改解析度都不會跑掉；存檔即生效免重啟。" />
+    </StackPanel>
+</UserControl>

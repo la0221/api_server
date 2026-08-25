@@ -13,6 +13,11 @@ if (args.Length > 0 && args[0] == "golden")
 if (args.Length > 0 && args[0] == "paircycle")
     return await PairCycleDemo.Run(args);
 
+// ── Route A 端到端煙測：Harness routea [imagesDir] [apiBase] [maxCount] ──
+//    站端前處理下放 → 中央推論，比對讀值與檔名正解（需 AIVision.Api 已啟動）
+if (args.Length > 0 && args[0] == "routea")
+    return await RouteASmokeTest.Run(args);
+
 // ── 預設路徑(可由 args 覆寫:Program <modelPath> <imagesDir>)──
 string modelPath = args.Length > 0
     ? args[0]

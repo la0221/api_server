@@ -1,9 +1,10 @@
-<Window x:Class="AIVision.Presentation.Wpf.Views.ShellView"
+﻿<Window x:Class="AIVision.Presentation.Wpf.Views.ShellView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        xmlns:ctl="clr-namespace:AIVision.Presentation.Wpf.Views.Controls"
         mc:Ignorable="d"
         Title="AIVision"
         Width="1400"
@@ -44,6 +45,8 @@
                     <MenuItem Header="系統" Foreground="#333333">
                         <MenuItem Header="API 伺服器設定" Command="{Binding OpenServerSettingsCommand}"
                                   Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <MenuItem Header="吹氣觸發設定" Command="{Binding OpenBlowSettingsCommand}"
+                                  Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <Separator Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <MenuItem Header="離開" Command="{Binding ExitCommand}" />
                     </MenuItem>
@@ -67,6 +70,14 @@
                         <MenuItem Header="模型發布（上架到伺服器）" Command="{Binding OpenModelPublishCommand}"
                                   Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <MenuItem Header="CRNN 測試（中央推論）" Command="{Binding OpenCrnnBatchCommand}"
+                                  Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <Separator Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <!-- 站端送檢（Route A，2026-08-14 跨機實測通過：讀值不折損、傳輸量 −68.6%）。
+                             中央端監控＝另一支程式 AIVision.Presentation.Server，裝在推論機上。 -->
+                        <MenuItem Header="站端送檢（前處理下放）" Command="{Binding OpenRouteAEdgeCommand}"
+                                  Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <!-- 產線實時：觸發式（環形緩衝＋回頭找），與上面「資料夾回放」的送檢頁不同 -->
+                        <MenuItem Header="模號穴號實時檢測（觸發式）" Command="{Binding OpenRealtimeInspectionCommand}"
                                   Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <Separator Visibility="{Binding IsEngineerOrAbove, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <!-- 硬體 -->
@@ -253,38 +264,19 @@
                 CornerRadius="8"
                 Background="Black">
                 <Grid>
-                    <!-- 影像顯示 -->
-                    <Image Source="{Binding LiveBitmap}"
-                       Stretch="Uniform">
-                        <Image.Style>
-                            <Style TargetType="Image">
-                                <Setter Property="Visibility" Value="Visible" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding LiveBitmap}" Value="{x:Null}">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Image.Style>
-                    </Image>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
 
-                    <!-- 無影像時的提示 -->
-                    <TextBlock Text="影像預覽"
-                           Foreground="White"
-                           FontSize="24"
-                           HorizontalAlignment="Center"
-                           VerticalAlignment="Center">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding LiveBitmap}" Value="{x:Null}">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
+                    <!-- 影像 + ROI 疊層 + 矩形參數，全部在共用的 RoiPreview 裡
+                         （之前主頁自己又寫了一份疊層座標換算，兩份遲早會漂移） -->
+                    <ctl:RoiPreview x:Name="Preview" Grid.Row="0" Background="Black"
+                                    HintFontSize="20" />
+
+                    <!-- ROI 判定區：四個功能集中在這一組，不散在別處 -->
+                    <ctl:RoiToolBar x:Name="RoiTools" Grid.Row="1" UseDarkTheme="True"
+                                    Margin="12,8,12,10" />
 
                     <!-- OK/NG 狀態顯示在左上角（縮小版） -->
                     <Border HorizontalAlignment="Left"

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -22,15 +22,21 @@ public sealed class CrnnInferController : ControllerBase
 {
     private readonly CrnnSidecarService _sidecar;
     private readonly ModelRegistryService _registry;
+    private readonly RecentInferenceStore _recent;
+    private readonly ReceivedImageStore _images;
     private readonly ILogger<CrnnInferController> _logger;
 
     public CrnnInferController(
         CrnnSidecarService sidecar,
         ModelRegistryService registry,
+        RecentInferenceStore recent,
+        ReceivedImageStore images,
         ILogger<CrnnInferController> logger)
     {
         _sidecar = sidecar;
         _registry = registry;
+        _recent = recent;
+        _images = images;
         _logger = logger;
     }
 
@@ -86,7 +92,7 @@ public sealed class CrnnInferController : ControllerBase
                 statusCode: StatusCodes.Status415UnsupportedMediaType);
 
         var sw = Stopwatch.StartNew();
-        var r = await _sidecar.RecognizeAsync(bytes, request.ModelVersion, ct);
+        var r = await _sidecar.RecognizeAsync(bytes, request.ModelVersion, ct, request.IsStrip ?? false);
         sw.Stop();
 
         if (!r.Ok)
@@ -97,6 +103,21 @@ public sealed class CrnnInferController : ControllerBase
                     statusCode: StatusCodes.Status404NotFound);
 
             _logger.LogWarning("[InferCrnn] sidecar 失敗：{Error}", r.Error);
+            // 失敗也要留痕：父端畫面看得到「有收到、但處理失敗」，才不會誤判成「站端根本沒送」。
+            var failStation = string.IsNullOrWhiteSpace(request.StationId) ? "-" : request.StationId!;
+            _recent.Add(new RecentInferenceEntry
+            {
+                Task = "ocr_crnn",
+                StationId = failStation,
+                Reading = "(推論失敗)",
+                ReceivedBytes = bytes.Length,
+                IsStrip = request.IsStrip ?? false,
+                ElapsedMs = (int)sw.ElapsedMilliseconds,
+                EdgeRawPath = request.RawPath,
+                SavedImagePath = await _images.SaveAsync(bytes, failStation, ct).ConfigureAwait(false),
+                Ok = false,
+                Error = r.Error,
+            });
             return Problem($"CRNN sidecar 失敗：{r.Error}",
                 statusCode: StatusCodes.Status503ServiceUnavailable);
         }
@@ -125,6 +146,32 @@ public sealed class CrnnInferController : ControllerBase
         _logger.LogInformation(
             "[InferCrnn] present={Present} mohao={Mohao} xuehao={Xuehao} review={Review} {Elapsed}ms",
             r.Present, r.Mohao, r.Xuehao, r.NeedsReview, sw.ElapsedMilliseconds);
+
+        // 父端監控的「最近辨識紀錄」資料來源（GET /api/infer/recent）——
+        // 沒有這個，父端畫面就算真的收到圖也一片空白，現場無從確認。
+        var station = string.IsNullOrWhiteSpace(request.StationId) ? "-" : request.StationId!;
+        // 留存收到的影像——**預設關閉**（原圖本來就在站端），父端畫面可即時開關。
+        var savedPath = await _images.SaveAsync(bytes, station, ct).ConfigureAwait(false);
+        _recent.Add(new RecentInferenceEntry
+        {
+            Task = "ocr_crnn",
+            StationId = station,
+            Reading = hasReading
+                ? $"{r.Mohao}/{r.Xuehao}"
+                : (r.Present ? "(讀不到)" : "(無鏡片)"),
+            HasReading = hasReading,
+            NeedsReview = needsReview,
+            ReceivedBytes = bytes.Length,
+            IsStrip = request.IsStrip ?? false,
+            ModelVersion = servedVersion,
+            ElapsedMs = (int)sw.ElapsedMilliseconds,
+            EngineMs = (int)r.LatencyMs,
+            EdgeRawPath = request.RawPath,
+            PieceId = request.PieceId,
+            TrigTick = request.TrigTick ?? 0,
+            SavedImagePath = savedPath,
+            Ok = true,
+        });
 
         return Ok(new InferCrnnResponse
         {
@@ -161,6 +208,25 @@ public sealed class InferCrnnRequest
 
     /// <summary>站點識別（原樣回聲）。</summary>
     public string? StationId { get; set; }
+
+    /// <summary>
+    /// 選填：影像是否**已由站端(edge)完成前處理**（展開好的 640 strip）。
+    /// true = 父端只做辨識，不再找圓/展開——避免重複前處理導致誤判「未偵測到鏡片」。
+    /// 省略/false = 沿用原行為（父端自行前處理）。
+    /// </summary>
+    public bool? IsStrip { get; set; }
+
+    /// <summary>
+    /// 選填：**原圖在站端的位置**（溯源用）。原圖不上傳，父端只記「這張的原圖在哪台的哪裡」。
+    /// ⚠ 走 form 欄位不走 header：HTTP header 只吃 latin-1，中文路徑會讓請求整個送不出去。
+    /// </summary>
+    public string? RawPath { get; set; }
+
+    /// <summary>站端的單片識別碼（<c>{站號}_{yyyyMMdd}_{流水}</c>）。兩邊 log 對帳的鑰匙。</summary>
+    public string? PieceId { get; set; }
+
+    /// <summary>站端的觸發時刻（TickCount64）。供事後算真實延遲。</summary>
+    public long? TrigTick { get; set; }
 }
 
 /// <summary><c>POST /api/infer/ocr_crnn</c> 的回應。</summary>

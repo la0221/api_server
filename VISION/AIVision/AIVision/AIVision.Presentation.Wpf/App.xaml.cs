@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Windows;
 using AIVision.Application.Configuration;
@@ -59,8 +59,25 @@ public partial class App : System.Windows.Application
         _host = Host.CreateDefaultBuilder()
             .ConfigureAppConfiguration(cfg =>
             {
+                // 用程式目錄而非工作目錄：從捷徑啟動時 CurrentDirectory 不等於 exe 所在地。
+                cfg.SetBasePath(AppContext.BaseDirectory);
                 cfg.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-                cfg.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+
+                // ⚠ appsettings.Development.json 是**本機開發覆寫**（把相機/PLC 改成 Fake，
+                // 好讓沒接實機的開發電腦不會卡在 IDS/Modbus 初始化）——它自己的註解就寫著「正式部署刪除或改回」。
+                // 但它原本是**無條件載入**的：於是這台明明接了 IDS 相機，Devices:Camera:Type 仍被蓋成 Fake，
+                // 主頁影像預覽永遠一片黑、而且畫面上完全沒有任何線索（2026-08-19 現場踩到）。
+                // 改成要明確指定環境才載入：設環境變數 AIVISION_ENVIRONMENT=Development（或 DOTNET_ENVIRONMENT）。
+                var env = Environment.GetEnvironmentVariable("AIVISION_ENVIRONMENT")
+                          ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
+                if (string.Equals(env, "Development", StringComparison.OrdinalIgnoreCase))
+                    cfg.AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true);
+
+                // 吹氣設定另存一份可寫檔：DelayMs 這種要在現場邊試邊調的值，
+                // 不該逼人去改 appsettings（那是部署設定，改了還要重啟）。
+                // reloadOnChange:true → 設定視窗存檔後 IOptionsMonitor 會自動吃到新值，免重啟。
+                cfg.AddJsonFile("configs/blow.json", optional: true, reloadOnChange: true);
+
                 cfg.AddEnvironmentVariables();
             })
             .ConfigureLogging((context, logging) =>
@@ -180,8 +197,10 @@ public partial class App : System.Windows.Application
         services.AddSingleton<SwitchableTwoHeadRecognizer>(sp =>
         {
             var o = sp.GetRequiredService<IOptions<MoldCodeWarpPolarOptions>>().Value;
+            // Resolved*：設定值不存在時回退 <程式目錄>\models\...——跨機部署免手改 appsettings
+            // （2026-08-19 需求 4：驗證機沒有 D 槽，不補這段本機接管直接失效）。
             return new SwitchableTwoHeadRecognizer(
-                o.MohaoModelPath, o.XuehaoModelPath, o.Preprocess, o.Passes,
+                o.ResolvedMohaoModelPath, o.ResolvedXuehaoModelPath, o.Preprocess, o.Passes,
                 sp.GetService<ILogger<SwitchableTwoHeadRecognizer>>());
         });
         services.AddSingleton<IMoldCodePairRecognizerPort>(sp =>
@@ -230,6 +249,46 @@ public partial class App : System.Windows.Application
         services.AddTransient<CrnnBatchViewModel>();
         services.AddTransient<Views.CrnnBatchView>();
 
+        // 站端送檢（2026-08-14 跨機實測通過）：本機做前處理、只送小圖到中央推論。
+        // 沿用 CrnnInferClient（位址＝「API 伺服器設定」）與既有前處理 WarpPolarPreprocessor。
+        // ⚠ 父端監控是另一支獨立程式（AIVision.Presentation.Server），裝在中央推論機上，不在本 App。
+        // 送檢事件記錄檔（append-only JSONL，logs\routeA_events_YYYYMMDD.jsonl）：
+        // 驗收數據不該靠人眼抄——8/19 跨機實測時讀值與傳輸量縮減只在畫面上，關窗就沒了。
+        // 吹氣設定視窗（現場調延遲 + 測試吹氣）
+        services.AddTransient<BlowSettingsViewModel>();
+        services.AddTransient<Views.BlowSettingsView>();
+
+        services.AddSingleton<Services.RouteAEventLog>();
+        services.AddTransient<RouteAEdgeViewModel>();
+        services.AddTransient<Views.RouteAEdgeView>();
+
+        // ── 模號穴號實時檢測（觸發式產線管線）──
+        // 結構移植自 D:\模號檢驗\相機版（現場已驗證，手上所有模號穴號訓練圖都是它拍的）：
+        // 環形緩衝保留每一幀 → 觸發只記時刻 → 擷取窗內回頭找工件完整進框的那一幀。
+        // 中間插入一次父子傳球（父端讀字、站端拿工單判定）。
+        // Pipeline 是 Singleton：它掛相機的 FrameReceived，不能有兩份同時搶同一批幀。
+        services.AddOptions<Services.Realtime.RealtimeInspectionOptions>()
+            .Bind(context.Configuration.GetSection(Services.Realtime.RealtimeInspectionOptions.SectionName));
+        services.AddSingleton(sp =>
+        {
+            var o = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<
+                Services.Realtime.RealtimeInspectionOptions>>().Value;
+            o.Normalize();
+            return o;
+        });
+        // ROI 走「影像比例」存 configs/roi.json：與解析度無關、現場拖曳即存、存檔即生效。
+        // Singleton —— 主頁預覽與實時檢測頁必須看同一份，否則畫的框跟實際判定的會不一樣。
+        services.AddSingleton<Services.RoiSettings>();
+        services.AddSingleton<Services.Realtime.RealtimeEventLog>();
+        services.AddSingleton<Services.Realtime.DiskSpaceMonitor>();
+        services.AddSingleton<Services.Realtime.PieceIdFactory>();
+        services.AddSingleton(sp => new Services.Realtime.PieceRecordStore(
+            sp.GetRequiredService<Services.Realtime.RealtimeInspectionOptions>(),
+            sp.GetService<ILogger<Services.Realtime.PieceRecordStore>>()));
+        services.AddSingleton<Services.Realtime.RealtimeInspectionPipeline>();
+        services.AddTransient<RealtimeInspectionViewModel>();
+        services.AddTransient<Views.RealtimeInspectionView>();
+
         // 讀取光源控制器配置
         var lightSection = context.Configuration.GetSection("Devices:Light");
         var listenIp = lightSection.GetValue<string>("ListenIp") ?? "0.0.0.0";
@@ -246,6 +305,35 @@ public partial class App : System.Windows.Application
         services.AddSingleton<ICameraPort, FakeCameraPort>();
         services.AddSingleton<ICameraDiscoveryPort, FakeCameraDiscovery>();
         services.TryAddSingleton<ICameraControlPort, NullCameraControlPort>();
+
+        // ========== 吹氣觸發（TCP → 現場 IO 監聽程式）==========
+        // 與既有 PLC 的 IoCommand.Blow() **並存**：現場 IO 卡不在這台電腦上，
+        // PLC 那條吹不到它，所以多一條把訊號送出去的通道（移植自 模號檢驗/相機版）。
+        // 預設 Enabled=false → 沒配置也不影響任何既有行為。
+        services.Configure<AIVision.Infrastructure.Devices.Blow.BlowOptions>(
+            context.Configuration.GetSection(AIVision.Infrastructure.Devices.Blow.BlowOptions.SectionName));
+        services.AddSingleton<AIVision.Application.Ports.Devices.IBlowOutputPort>(sp =>
+        {
+            var o = sp.GetRequiredService<IOptions<AIVision.Infrastructure.Devices.Blow.BlowOptions>>().Value;
+            // Log 通道給開發機／驗收用：行為與 TCP 一致，只是不真的送出去。
+            return string.Equals(o.Output, "Log", StringComparison.OrdinalIgnoreCase)
+                ? new AIVision.Infrastructure.Devices.Blow.LogBlowOutput(
+                    sp.GetService<ILogger<AIVision.Infrastructure.Devices.Blow.LogBlowOutput>>())
+                : new AIVision.Infrastructure.Devices.Blow.TcpBlowOutput(
+                    sp.GetRequiredService<IOptionsMonitor<AIVision.Infrastructure.Devices.Blow.BlowOptions>>(),
+                    sp.GetService<ILogger<AIVision.Infrastructure.Devices.Blow.TcpBlowOutput>>());
+        });
+        services.AddSingleton<AIVision.Infrastructure.Devices.Blow.BlowDispatcher>();
+        services.AddSingleton<AIVision.Application.Ports.Devices.IBlowDispatcherPort>(sp =>
+            sp.GetRequiredService<AIVision.Infrastructure.Devices.Blow.BlowDispatcher>());
+
+        // ========== 混料圖歸檔（自我強化訓練的輸入）==========
+        // 抓到混料的當下，正解（工單預期）與模型答錯的內容同時在手上 →
+        // 存成 exp_預期_got_偵測_*.jpg，檔名本身就是標註。預設**開啟**：抓到卻沒存等於白抓。
+        services.Configure<AIVision.MoldCode.Onnx.MismatchArchiveOptions>(
+            context.Configuration.GetSection(AIVision.MoldCode.Onnx.MismatchArchiveOptions.SectionName));
+        services.AddSingleton<AIVision.Application.Ports.MoldCode.IMismatchArchivePort,
+            AIVision.MoldCode.Onnx.MismatchArchive>();
 
         // 添加 PLC 服務（根據設定切換實作）
         services.AddPlcServices(context.Configuration);
@@ -325,6 +413,8 @@ public partial class App : System.Windows.Application
 
         var cameraSection = context.Configuration.GetSection("Devices:Camera");
         var cameraType = cameraSection.GetValue<string>("Type") ?? "Fake";
+        // 靜默降級成假相機是最難查的那種問題（畫面只會全黑），所以啟動就先講清楚用的是哪一種。
+        System.Diagnostics.Debug.WriteLine($"[DI] Devices:Camera:Type = {cameraType}");
 
         switch (cameraType.ToLowerInvariant())
         {
@@ -548,6 +638,13 @@ public partial class App : System.Windows.Application
     {
         var logger = _host.Services.GetService<ILogger<App>>();
         logger?.LogInformation("[App] 開始啟動程序");
+
+        // 視窗尺寸一律用「螢幕工作區的百分比」（預設 80%），XAML 的尺寸只當設計目標。
+        // 必須在任何視窗（含 Splash）顯示前註冊，否則先開的視窗吃不到。
+        // 起因 2026-08-19：驗證機 1024x768，多個視窗 MinWidth 寫死 1100~1280 → 超出畫面且拉不小。
+        // 比例可由 appsettings 的 Ui:WindowRatio 現場調整（0.3~1.0）。
+        Services.WindowSizeAdapter.RegisterGlobal(
+            _host.Services.GetRequiredService<IConfiguration>().GetValue<double?>("Ui:WindowRatio"));
 
         // 顯示 Splash Screen
         var splashLogger = _host.Services.GetService<ILogger<SplashWindow>>();

@@ -1,0 +1,437 @@
+﻿<Window x:Class="AIVision.Presentation.Server.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Server.ViewModels"
+        mc:Ignorable="d"
+        Title="AIVision 中央推論監控（父端）"
+        Width="1180"
+        Height="800"
+        MinWidth="980"
+        MinHeight="660"
+        Background="{StaticResource BackgroundGrayBrush}"
+        WindowStartupLocation="CenterScreen"
+        d:DataContext="{d:DesignInstance vm:ServerMonitorViewModel, IsDesignTimeCreatable=False}">
+    <Window.Resources>
+        <!-- Background 一律寫在 Style 內。寫在元素上會蓋掉 IsEnabled Trigger，按鈕 disabled 時還是亮藍色。 -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Background" Value="#FF2196F3" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#FF1976D2" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#FFBDBDBD" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ── 頂列 ── -->
+        <Border Grid.Row="0" Background="White" BorderBrush="#E0E0E0" BorderThickness="0,0,0,1">
+            <Grid Margin="16,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="{StaticResource PrimaryBlueBrush}" CornerRadius="4" Padding="8,3">
+                        <TextBlock Text="中央推論機" FontSize="11" FontWeight="Bold" Foreground="White" />
+                    </Border>
+                    <TextBlock Text="本機角色：接收各站送檢並執行 GPU 辨識"
+                               FontSize="12" Foreground="#FF666666" Margin="10,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Border Background="#FF2D2D30" CornerRadius="4" Padding="10,6"
+                            BorderBrush="#FF3F3F46" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal">
+                            <Ellipse Width="12" Height="12" VerticalAlignment="Center">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="{StaticResource NgRedBrush}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsOnline}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource AccentOrangeBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsReady}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource OkGreenBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="AI" FontSize="11" Foreground="White" FontWeight="Medium"
+                                       Margin="5,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <Button Content="自我強化訓練" Click="OnOpenTrainingClick"
+                            Style="{StaticResource PrimaryButton}" Padding="12,5" FontSize="12"
+                            Margin="12,0,0,0" VerticalAlignment="Center" />
+                    <!-- 呼吸心跳：每秒一拍，由更新迴圈本身驅動。
+                         不跳＝更新迴圈死了，一眼看得出來（別再重演「勾選說在自動更新、其實停了」）。 -->
+                    <Ellipse Width="9" Height="9" VerticalAlignment="Center" Margin="14,0,0,0"
+                             ToolTip="每秒一拍；停止跳動代表自動更新停了">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="{StaticResource OkGreenBrush}" />
+                                <Setter Property="Opacity" Value="0.25" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Heartbeat}" Value="True">
+                                        <Setter Property="Opacity" Value="1" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsStale}" Value="True">
+                                        <Setter Property="Fill" Value="{StaticResource NgRedBrush}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding AutoRefresh}" Value="False">
+                                        <Setter Property="Fill" Value="#FF999999" />
+                                        <Setter Property="Opacity" Value="0.35" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock VerticalAlignment="Center" Margin="6,0,0,0" FontSize="11">
+                        <Run Text="{Binding LastCheckedText, Mode=OneWay}" />
+                        <Run Text="　" />
+                        <Run Text="{Binding FreshnessText, Mode=OneWay}" />
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Foreground" Value="#FF666666" />
+                                <Style.Triggers>
+                                    <!-- 過期就轉紅：畫面永遠講出「資料有多新」，而不是只講「有在自動更新」 -->
+                                    <DataTrigger Binding="{Binding IsStale}" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource NgRedBrush}" />
+                                        <Setter Property="FontWeight" Value="Bold" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── 內容 ── -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="16,16,16,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- 服務狀態 -->
+                <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="18" Margin="0,0,0,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" Width="86" Height="86" CornerRadius="43" Margin="0,0,20,0">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="#FFFDECE9" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsOnline}" Value="True">
+                                            <Setter Property="Background" Value="#FFFBF3E0" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsReady}" Value="True">
+                                            <Setter Property="Background" Value="#FFE8F6EC" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <Ellipse Width="34" Height="34">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Setter Property="Fill" Value="{StaticResource NgRedBrush}" />
+                                        <Setter Property="Effect">
+                                            <Setter.Value>
+                                                <DropShadowEffect BlurRadius="10" ShadowDepth="0" Opacity="0.6" />
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsOnline}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource AccentOrangeBrush}" />
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsReady}" Value="True">
+                                                <Setter Property="Fill" Value="{StaticResource OkGreenBrush}" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StatusText}" FontSize="24" FontWeight="Bold" Foreground="#FF333333" />
+                            <TextBlock Text="{Binding StatusDetail}" FontSize="13" Foreground="#FF666666"
+                                       TextWrapping="Wrap" Margin="0,4,0,0" />
+                            <WrapPanel Margin="0,10,0,0">
+                                <TextBlock Text="服務位址：" FontSize="12" Foreground="#FF888888" />
+                                <TextBlock Text="{Binding ServerUrl}" FontSize="12" Foreground="#FF444444"
+                                           FontWeight="Medium" Margin="0,0,18,0" />
+                                <TextBlock Text="預設模型版本：" FontSize="12" Foreground="#FF888888" />
+                                <TextBlock Text="{Binding DefaultVersion}" FontSize="12" Foreground="#FF444444"
+                                           FontWeight="Medium" Margin="0,0,18,0" />
+                                <TextBlock Text="本機累計收到：" FontSize="12" Foreground="#FF888888" />
+                                <TextBlock Text="{Binding TotalReceived}" FontSize="12" Foreground="#FF1378AA"
+                                           FontWeight="Bold" />
+                                <TextBlock Text=" 張" FontSize="12" Foreground="#FF888888" Margin="0,0,18,0" />
+                                <TextBlock Text="收到的圖：" FontSize="12" Foreground="#FF888888" />
+                                <TextBlock Text="{Binding ImageSaveText}" FontSize="12" Foreground="#FF444444"
+                                           FontWeight="Medium" />
+                            </WrapPanel>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <Button Content="重新檢查" Command="{Binding RefreshCommand}"
+                                    Style="{StaticResource PrimaryButton}"
+                                    IsEnabled="{Binding IsChecking, Converter={StaticResource InverseBooleanConverter}}"
+                                    Padding="18,8" FontSize="14" FontWeight="SemiBold" />
+                            <CheckBox Content="每 5 秒自動更新" IsChecked="{Binding AutoRefresh}"
+                                      FontSize="12" Foreground="#FF666666" Margin="0,10,0,0"
+                                      HorizontalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!-- 站點：模號穴號／公母模／瑕疵檢查（點卡片看細節） -->
+                <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,10">
+                            <TextBlock Text="站點" FontSize="16" FontWeight="SemiBold" Foreground="#FF444444" />
+                            <TextBlock Text="點任一張卡進去看細節：引擎與模型、收到的圖與存放點、最近辨識"
+                                       FontSize="11" Foreground="#FF999999"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <ItemsControl ItemsSource="{Binding Stations}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:StationRow}">
+                                    <!-- 整張卡就是按鈕：現場用觸控也點得到 -->
+                                    <Button Command="{Binding OpenDetailCommand}" Cursor="Hand"
+                                            HorizontalContentAlignment="Stretch" Margin="0,0,0,8">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="#FFFAFBFC" />
+                                                <Setter Property="BorderThickness" Value="0" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Button">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    BorderBrush="#FFE6E9EC" BorderThickness="1"
+                                                                    CornerRadius="10" Padding="16,14">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#FFEFF5FA" />
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- 可否推論的號誌 -->
+                                            <Ellipse Grid.Column="0" Width="12" Height="12" Margin="0,0,12,0"
+                                                     VerticalAlignment="Center">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Fill" Value="#FFCCCCCC" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding InferReady}" Value="True">
+                                                                <Setter Property="Fill" Value="{StaticResource OkGreenBrush}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding GroupName}" FontSize="16"
+                                                           FontWeight="SemiBold" Foreground="#FF333333" />
+                                                <TextBlock Text="{Binding CurrentText}" FontSize="12"
+                                                           Foreground="#FF1378AA" Margin="0,3,0,0" />
+                                                <TextBlock Text="{Binding EngineSummary}" FontSize="11"
+                                                           Foreground="#FFAAAAAA" Margin="0,2,0,0" />
+                                                <TextBlock Text="{Binding Note}" FontSize="11" Foreground="#FFB8860B"
+                                                           TextWrapping="Wrap" Margin="0,4,0,0">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Visible" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Note}" Value="">
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </StackPanel>
+
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center"
+                                                        HorizontalAlignment="Right" Margin="0,0,18,0">
+                                                <TextBlock FontSize="11" Foreground="#FF888888" HorizontalAlignment="Right">
+                                                    <Run Text="本機收到 " /><Run Text="{Binding RecentCount, Mode=OneWay}" /><Run Text=" 筆" />
+                                                </TextBlock>
+                                                <TextBlock Text="{Binding LastText}" FontSize="12"
+                                                           Foreground="#FF555555" HorizontalAlignment="Right"
+                                                           Margin="0,3,0,0" />
+                                            </StackPanel>
+
+                                            <TextBlock Grid.Column="3" Text="›" FontSize="26" Foreground="#FFBBBBBB"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <TextBlock Text="尚未取得站點資訊（推論服務未回應，或版本較舊沒有 /api/models/pools 端點）"
+                                   FontSize="12" Foreground="#FFAAAAAA">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Stations.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                </Border>
+
+                <!-- 最近辨識紀錄（全站；雙擊看單筆詳細） -->
+                <Border Grid.Row="2" Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="320" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0" Margin="0,0,0,10">
+                            <TextBlock Text="最近辨識紀錄（全部站點）" FontSize="16" FontWeight="SemiBold" Foreground="#FF444444" />
+                            <TextBlock Text="雙擊任一列看單筆詳細"
+                                       FontSize="11" Foreground="#FF999999"
+                                       HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding RecentItems}"
+                                  AutoGenerateColumns="False" IsReadOnly="True"
+                                  HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#FFEEEEEE" BorderThickness="0"
+                                  Background="Transparent" RowBackground="White"
+                                  AlternatingRowBackground="#FFFAFBFC" FontSize="13">
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding NeedsReview}" Value="True">
+                                            <Setter Property="Background" Value="#FFFBF3E0" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding HasReading}" Value="False">
+                                            <Setter Property="Foreground" Value="#FF999999" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Ok}" Value="False">
+                                            <Setter Property="Background" Value="#FFFDECE9" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.InputBindings>
+                                <MouseBinding MouseAction="LeftDoubleClick"
+                                              Command="{Binding SelectedItem.OpenDetailCommand,
+                                                        RelativeSource={RelativeSource AncestorType=DataGrid}}" />
+                            </DataGrid.InputBindings>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="時間" Binding="{Binding Time}" Width="80" />
+                                <DataGridTextColumn Header="來源站" Binding="{Binding StationId}" Width="80" />
+                                <!-- pieceId：拿它去站端 records\ 就找得到那一片的原圖與完整判定 -->
+                                <DataGridTextColumn Header="pieceId" Binding="{Binding PieceId}" Width="150" />
+                                <DataGridTextColumn Header="讀值" Binding="{Binding Reading}" Width="110">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="FontSize" Value="14" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="收到大小" Binding="{Binding SizeText}" Width="80" />
+                                <DataGridTextColumn Header="前處理在哪" Binding="{Binding PreprocessText}" Width="90" />
+                                <DataGridTextColumn Header="模型版本" Binding="{Binding ModelVersion}" Width="80" />
+                                <DataGridTextColumn Header="推論 ms" Binding="{Binding ElapsedMs}" Width="70" />
+                                <DataGridTextColumn Header="留圖" Binding="{Binding ImageText}" Width="60" />
+                                <DataGridTextColumn Header="站端原圖位置" Binding="{Binding EdgeRawPath}" Width="*" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <Border Grid.Row="1" Background="#FFFBF3E0" BorderBrush="#FFE9C98A" BorderThickness="1"
+                                CornerRadius="8" Padding="16" VerticalAlignment="Top" Margin="0,8,0,0">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding RecentItems.Count}" Value="0">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <TextBlock Text="尚無紀錄" FontSize="14" FontWeight="SemiBold" Foreground="#FFB8860B" />
+                                <TextBlock FontSize="12" Foreground="#FF7A6420" TextWrapping="Wrap" Margin="0,6,0,0"
+                                           Text="本機自啟動以來還沒收到任何送檢。站端按下「開始送檢」後這裡就會逐筆出現；若站端顯示「本機接管」代表圖根本沒送到本機——先確認伺服器位址、5030 埠防火牆，以及 API 是否綁在 0.0.0.0（只綁 localhost 時外機連不進來）。" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- ── 狀態列 ── -->
+        <Border Grid.Row="2" Background="#FF2D2D30" Padding="16,8">
+            <TextBlock Text="{Binding ActionMessage}" Foreground="#FFDDDDDD" FontSize="12"
+                       TextTrimming="CharacterEllipsis" />
+        </Border>
+    </Grid>
+</Window>

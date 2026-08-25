@@ -1,0 +1,361 @@
+﻿<Window x:Class="AIVision.Presentation.Wpf.Views.RouteAEdgeView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:AIVision.Presentation.Wpf.ViewModels"
+        mc:Ignorable="d"
+        Title="站端送檢（前處理下放）"
+        Width="1280"
+        Height="800"
+        MinWidth="1100"
+        MinHeight="700"
+        Background="{StaticResource BackgroundGrayBrush}"
+        WindowStartupLocation="CenterScreen"
+        d:DataContext="{d:DesignInstance vm:RouteAEdgeViewModel, IsDesignTimeCreatable=False}">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!-- ── 工具列 ───────────────────────────────────────── -->
+        <Border Grid.Row="0" Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                    <TextBlock Text="站號" FontSize="12" Foreground="#FF666666" Margin="0,0,0,4" />
+                    <Border Background="#FFEEF4FB" BorderBrush="#FFD0D7E2" BorderThickness="1"
+                            CornerRadius="6" Padding="8,5">
+                        <TextBox Text="{Binding StationId, UpdateSourceTrigger=PropertyChanged}"
+                                 Width="90" FontSize="14" BorderThickness="0" Background="Transparent" />
+                    </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Margin="0,0,12,0">
+                    <TextBlock Text="影像來源資料夾" FontSize="12" Foreground="#FF666666" Margin="0,0,0,4" />
+                    <Border Background="#FFEEF4FB" BorderBrush="#FFD0D7E2" BorderThickness="1"
+                            CornerRadius="6" Padding="8,5">
+                        <TextBlock Text="{Binding SourceFolder, TargetNullValue='（尚未選擇）'}"
+                                   Width="420" FontSize="13" TextTrimming="CharacterEllipsis"
+                                   ToolTip="{Binding SourceFolder}" />
+                    </Border>
+                </StackPanel>
+
+                <Button Grid.Column="2" Content="選擇資料夾"
+                        Command="{Binding PickFolderCommand}"
+                        VerticalAlignment="Bottom" Padding="12,7" FontSize="13"
+                        Background="#FF607D8B" Foreground="White" BorderThickness="0" Cursor="Hand">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                                Padding="{TemplateBinding Padding}">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter Property="Background" Value="#FF455A64" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </Button.Style>
+                </Button>
+
+                <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Bottom">
+                    <Button Content="清除" Command="{Binding ClearCommand}"
+                            Padding="14,7" FontSize="13" Margin="0,0,8,0"
+                            Background="#FF9E9E9E" Foreground="White" BorderThickness="0" Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="開始送檢" Command="{Binding StartCommand}"
+                            IsEnabled="{Binding CanStart}"
+                            Padding="20,7" FontSize="14" FontWeight="SemiBold" Margin="0,0,8,0"
+                            Foreground="White" BorderThickness="0" Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <!-- Background 必須放這裡；寫在 Button 上會蓋掉下面的 IsEnabled Trigger -->
+                                <Setter Property="Background" Value="#FF2196F3" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter Property="Background" Value="#FF1976D2" />
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter Property="Background" Value="#FFBDBDBD" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Content="停止" Command="{Binding StopCommand}"
+                            IsEnabled="{Binding IsRunning}"
+                            Padding="16,7" FontSize="13"
+                            Foreground="White" BorderThickness="0" Cursor="Hand">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <!-- 同上：Background 要在 Style 裡，Trigger 才生效 -->
+                                <Setter Property="Background" Value="#FFFF9800" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" CornerRadius="6"
+                                                    Padding="{TemplateBinding Padding}">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter Property="Background" Value="#FFBDBDBD" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ── 主內容 ───────────────────────────────────────── -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="380" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- 左：原圖 / 前處理圖 對照 -->
+            <StackPanel Grid.Column="0" Margin="0,0,12,0">
+                <Border Background="White" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="原圖（留在本站）" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="#FF444444" Margin="0,0,0,8" />
+                        <Border Background="Black" CornerRadius="8" Height="200">
+                            <Grid>
+                                <Image Source="{Binding LastRawImage}" Stretch="Uniform" Margin="4" />
+                                <TextBlock Text="尚無影像" Foreground="#FF888888" FontSize="13"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding LastRawImage}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Padding="16">
+                    <StackPanel>
+                        <TextBlock Text="前處理後（實際送出的小圖）" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="#FF444444" Margin="0,0,0,8" />
+                        <Border Background="#FFF7F7F7" BorderBrush="#FFE0E0E0" BorderThickness="1"
+                                CornerRadius="8" Height="200">
+                            <Grid>
+                                <Image Source="{Binding LastStripImage}" Stretch="Uniform" Margin="4" />
+                                <TextBlock Text="尚無前處理結果" Foreground="#FFAAAAAA" FontSize="13"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding LastStripImage}" Value="{x:Null}">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="找圓 → 裁圓 → 極座標展開 → 640 白底（與模型相同）"
+                                   FontSize="11" Foreground="#FF888888" Margin="0,8,0,0" TextWrapping="Wrap" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <!-- 右：統計 + 逐張結果 -->
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!-- 統計卡 -->
+                <Border Grid.Row="0" Background="#FFE3E5E8" CornerRadius="12" Padding="16" Margin="0,0,0,12">
+                    <StackPanel>
+                        <TextBlock Text="本次送檢統計" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="#FF333333" Margin="0,0,0,12" />
+                        <UniformGrid Columns="7" Rows="1">
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="總張數" FontSize="12" Foreground="#FF555555" />
+                                <TextBlock Text="{Binding TotalCount}" FontSize="26" FontWeight="Bold" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="送達中央" FontSize="12" Foreground="#FF555555" />
+                                <TextBlock Text="{Binding ServerOkCount}" FontSize="26" FontWeight="Bold"
+                                           Foreground="{StaticResource OkGreenBrush}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="本機接管" FontSize="12" Foreground="#FF555555"
+                                           ToolTip="中央不可達時改由本機模型辨識的張數" />
+                                <TextBlock Text="{Binding FallbackCount}" FontSize="26" FontWeight="Bold"
+                                           Foreground="{StaticResource AccentOrangeBrush}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="本機讀出" FontSize="12" Foreground="#FF555555"
+                                           ToolTip="本機接管之中，實際讀出模號/穴號的張數" />
+                                <TextBlock Text="{Binding LocalReadCount}" FontSize="26" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryBlueBrush}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <!-- 單獨一格：這種張數既沒送中央、也不是本機接管，混進任何一邊都會讓
+                                     「送達 / 備援」這兩個驗收數字說謊；混進 NG 更會被誤會成品質問題。 -->
+                                <TextBlock Text="擷取失誤" FontSize="12" Foreground="#FF555555"
+                                           ToolTip="找不到圓＝擷取失誤，不是不良品。產線上多半是重複觸發拍照造成（工件還沒進框或前一片已走掉）。不送中央、不吹氣——要去查觸發訊號。" />
+                                <TextBlock Text="{Binding CaptureFaultCount}" FontSize="26" FontWeight="Bold"
+                                           Foreground="{StaticResource AccentOrangeBrush}" />
+                            </StackPanel>
+                            <StackPanel Margin="0,0,12,0">
+                                <TextBlock Text="傳輸量縮減" FontSize="12" Foreground="#FF555555" />
+                                <TextBlock Text="{Binding ReductionText}" FontSize="26" FontWeight="Bold"
+                                           Foreground="{StaticResource PrimaryBlueBrush}" />
+                            </StackPanel>
+                            <StackPanel>
+                                <TextBlock Text="端到端 p50" FontSize="12" Foreground="#FF555555" />
+                                <TextBlock Text="{Binding LatencyText}" FontSize="26" FontWeight="Bold" />
+                            </StackPanel>
+                        </UniformGrid>
+                    </StackPanel>
+                </Border>
+
+                <!-- 逐張結果 -->
+                <Border Grid.Row="1" Background="White" CornerRadius="12" Padding="16">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Text="逐張紀錄（新的在最上）" FontSize="16" FontWeight="SemiBold"
+                                   Foreground="#FF444444" Margin="0,0,0,10" />
+
+                        <DataGrid Grid.Row="1"
+                                  ItemsSource="{Binding Items}"
+                                  AutoGenerateColumns="False"
+                                  IsReadOnly="True"
+                                  HeadersVisibility="Column"
+                                  GridLinesVisibility="Horizontal"
+                                  HorizontalGridLinesBrush="#FFEEEEEE"
+                                  BorderThickness="0"
+                                  Background="Transparent"
+                                  RowBackground="White"
+                                  AlternatingRowBackground="#FFFAFBFC"
+                                  FontSize="13">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="44" />
+                                <DataGridTextColumn Header="影像" Binding="{Binding FileName}" Width="*" />
+                                <DataGridTextColumn Header="讀值" Binding="{Binding Reading}" Width="110">
+                                    <DataGridTextColumn.ElementStyle>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                            <Setter Property="FontSize" Value="14" />
+                                            <Setter Property="VerticalAlignment" Value="Center" />
+                                        </Style>
+                                    </DataGridTextColumn.ElementStyle>
+                                </DataGridTextColumn>
+                                <DataGridTextColumn Header="原圖" Binding="{Binding RawKbText}" Width="80" />
+                                <DataGridTextColumn Header="送出" Binding="{Binding SentKbText}" Width="80" />
+                                <DataGridTextColumn Header="縮減" Binding="{Binding CutText}" Width="70" />
+                                <DataGridTextColumn Header="來回" Binding="{Binding ElapsedText}" Width="80" />
+                                <DataGridTextColumn Header="來源" Binding="{Binding Source}" Width="90" />
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+
+        <!-- ── 狀態列 ───────────────────────────────────────── -->
+        <Border Grid.Row="2" Background="#FF2D2D30" CornerRadius="8" Padding="14,10" Margin="0,12,0,0"
+                BorderBrush="#FF3F3F46" BorderThickness="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,16,0">
+                    <Ellipse Width="12" Height="12" VerticalAlignment="Center">
+                        <Ellipse.Style>
+                            <Style TargetType="Ellipse">
+                                <Setter Property="Fill" Value="#FF757575" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                        <Setter Property="Fill" Value="{StaticResource OkGreenBrush}" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Ellipse.Style>
+                    </Ellipse>
+                    <TextBlock Text="送檢狀態" FontSize="11" Foreground="White" FontWeight="Medium"
+                               Margin="6,0,0,0" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <TextBlock Grid.Column="1" Text="{Binding StatusText}" FontSize="13" Foreground="White"
+                           VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+
+                <!-- 記錄檔位置：驗收數字都寫在這個檔裡，現場要知道去哪撈（關窗也不會不見） -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <TextBlock Text="記錄檔：" FontSize="11" Foreground="#FF888888" />
+                    <TextBlock Text="{Binding LogPathText}" FontSize="11" Foreground="#FFAAAAAA"
+                               MaxWidth="420" TextTrimming="CharacterEllipsis"
+                               ToolTip="{Binding LogPathText}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

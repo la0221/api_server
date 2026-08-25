@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 
 namespace AIVision.Domain.MoldCode;
@@ -88,10 +88,24 @@ public static class MoldCodePairVerifier
                 PairVerifyOutcome.MixedAlarm, PairDecision.MismatchBin, mohaoMismatch, xuehaoMismatch, why);
         }
 
-        // 有軸不符但都不到門檻（模型搖擺）→ 採信操作員輸入。
-        return new PairDecision(
-            PairVerifyOutcome.TrustInput, expectedFull, false, false,
-            $"low-confidence mismatch (read={readMohao}/{readXuehao} conf={obs.ConfMohao:F2}/{obs.ConfXuehao:F2}) → trust operator");
+        // 有軸不符、但兩軸都不到門檻 → **不放行**（fail-closed）。
+        //
+        // ⚠ 2026-08-25 現場拍板改掉：原本這裡回 TrustInput（採信操作員輸入）＝當良品放行。
+        //   原意是「保留 11↔17 這類同模具內的模型搖擺，不要為了一次低信心就誤吹良品」，
+        //   但實測證明推論有兩個致命盲點：
+        //     ① 真的混料時，操作員填的工單當然還是原本那個料號
+        //        → 「採信操作員」＝ 正好放掉最該攔的那片（fail-open）。
+        //     ② 信心低到 conf=0.31/0.59 根本不是「模型搖擺」，是**擷取到爛圖**
+        //        （沒對準／模糊／根本不是鏡片）。實測讀出 "M10/M5"——穴號是不可能的值——
+        //        卻仍被當成一次低信心讀取而放行。
+        //   本檔上方 NG 分支的註解早就警告過同一件事：
+        //     「不可落到下方分軸邏輯，否則低信心 NG 會變 TrustInput 被當良品放行（fail-open）」
+        //
+        // 改回 Skip，與 NG 低信心分支一致：**不放行、也不誤吹**
+        //   （下游 VerifyMoldCodePairCycleCommandHandler 把 Skip 映射成 Result(false)＝NG，
+        //     不會觸發氣吹——爛圖不該用氣閥去處理，那是取像品質問題）。
+        return PairDecision.Skip(
+            $"low-confidence mismatch (read={readMohao}/{readXuehao} conf={obs.ConfMohao:F2}/{obs.ConfXuehao:F2}) — cannot confirm good part");
     }
 
     private static void ValidateThreshold(double t, string name)

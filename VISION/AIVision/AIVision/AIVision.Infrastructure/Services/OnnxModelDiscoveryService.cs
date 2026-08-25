@@ -34,11 +34,19 @@ public sealed class OnnxModelDiscoveryService : IModelDiscoveryService
     {
         var models = new List<DiscoveredModel>();
 
+        // 跨機部署：appsettings 常寫死 D:\AIVisionModels，但現場機可能只有 C 槽
+        // （2026-08-19 驗證機實況）。相對路徑改以「程式目錄」為基準，才不必逐台改設定檔。
+        folderPath = ResolveScanFolder(folderPath);
+
         _logger.LogInformation("[OnnxDiscovery] 開始掃描 ONNX 模型資料夾: {FolderPath}", folderPath);
 
         if (string.IsNullOrWhiteSpace(folderPath) || !Directory.Exists(folderPath))
         {
-            _logger.LogWarning("[OnnxDiscovery] 掃描資料夾不存在: {FolderPath}", folderPath);
+            // 「沒配模型資料夾」是常態（本機不做模型管理時），不是故障 →
+            // 用 Information，別每次啟動噴 WARN 讓現場以為壞掉。
+            _logger.LogInformation(
+                "[OnnxDiscovery] 掃描資料夾不存在，跳過本機模型掃描: {FolderPath}（如需自動列出模型，" +
+                "請把 Models:ScanFolder 指到存在的路徑，或改用相對路徑如 models）", folderPath);
             return models;
         }
 
@@ -59,6 +67,25 @@ public sealed class OnnxModelDiscoveryService : IModelDiscoveryService
         _logger.LogInformation("[OnnxDiscovery] 掃描完成 - 共發現 {Count} 個 ONNX 模型", models.Count);
 
         return models;
+    }
+
+    /// <summary>
+    /// 掃描資料夾路徑解析：絕對路徑原樣;相對路徑以**程式目錄**為基準
+    /// (不用 CurrentDirectory——從捷徑啟動時工作目錄不等於 exe 所在地)。
+    /// </summary>
+    private static string ResolveScanFolder(string folderPath)
+    {
+        if (string.IsNullOrWhiteSpace(folderPath)) return folderPath;
+        try
+        {
+            return Path.IsPathRooted(folderPath)
+                ? folderPath
+                : Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, folderPath));
+        }
+        catch
+        {
+            return folderPath;   // 路徑字串本身壞掉:交給下面的 Exists 檢查處理
+        }
     }
 
     /// <summary>
