@@ -1,0 +1,70 @@
+"""V9.3 穴號 = A 軸：全量從頭重訓（yolov8s-cls，不 warm-start）。
+  data = data_v93/xuehao（v9.2n 基底 19類含NG + M28-04「新字體」250 張進穴號04）
+  環狀 warpPolar(R_INNER=0.6) + XuehaoMixedTierDataset（tier1 只旋轉、不外觀抖動）。
+  ★ 固定 seed + deterministic（比照 _train_v92n_xuehao.py）。
+
+修的問題：`錯誤M28-04/M28_2` 新刻印字體(凸框粗體) → v9.2 42% 誤判(04→06)。
+
+Run: python _train_v93_xuehao.py --device 0 --workers 4
+"""
+from __future__ import annotations
+
+import argparse
+import sys
+from pathlib import Path
+
+HERE = Path(__file__).resolve().parent
+REPO = HERE.parents[1]
+for p in (REPO / "OCR" / "yolo_a_V6", REPO / "OCR" / "yolo_a_V6.6.4", REPO / "OCR" / "yolo_a_V6.7",
+          REPO / "OCR" / "yolo_a_V6.7.1", REPO / "OCR" / "yolo_a_V6.7.3"):
+    sys.path.insert(0, str(p))
+
+from ultralytics.models.yolo.classify.train import ClassificationTrainer
+from v673_dataset import XuehaoMixedTierDataset
+
+DATA = REPO / "data_v93" / "xuehao"
+BASE = REPO / "yolov8s-cls.pt"
+
+
+def make_trainer():
+    class Trainer(ClassificationTrainer):
+        def build_dataset(self, img_path, mode="train", batch=None):
+            return XuehaoMixedTierDataset(root=img_path, args=self.args,
+                                          augment=(mode == "train"), prefix=mode)
+    return Trainer
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--epochs", type=int, default=20)
+    ap.add_argument("--batch", type=int, default=16)
+    ap.add_argument("--imgsz", type=int, default=640)
+    ap.add_argument("--device", default="0")
+    ap.add_argument("--lr0", type=float, default=5e-4)
+    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--patience", type=int, default=8)
+    ap.add_argument("--seed", type=int, default=0)
+    args = ap.parse_args()
+    if not DATA.exists():
+        raise FileNotFoundError("data_v93/xuehao missing（先跑 _build_v93_xuehao.py）")
+    if not BASE.exists():
+        raise FileNotFoundError(f"base backbone missing: {BASE}")
+
+    overrides = dict(
+        model=str(BASE), data=str(DATA), epochs=args.epochs,
+        imgsz=args.imgsz, batch=args.batch, device=args.device, workers=args.workers,
+        patience=args.patience, project=str(HERE / "runs_v93"), name="xuehao", exist_ok=True,
+        optimizer="AdamW", lr0=args.lr0, lrf=0.1, warmup_epochs=0.0, cos_lr=True,
+        seed=args.seed, deterministic=True,
+        degrees=0.0, fliplr=0.0, flipud=0.0, scale=0.0, translate=0.0,
+        hsv_h=0.0, hsv_s=0.0, hsv_v=0.0, erasing=0.0, auto_augment=None,
+        mixup=0.0, cutmix=0.0,
+    )
+    print(f"[V9.3 xuehao] 全量從頭重訓 yolov8s-cls（19類含NG；+M28-04新字體250；seed={args.seed} deterministic）")
+    trainer = make_trainer()(overrides=overrides)
+    trainer.train()
+    print(f"[V9.3 xuehao] best -> {trainer.best}")
+
+
+if __name__ == "__main__":
+    main()
