@@ -1,0 +1,44 @@
+[nonar v931-fix-v3] device=cuda:0 holdout=[]
+[data] real=11174 synth=6960 stable=1833 total=19967 val=2416
+[model] NonAROCR params=3.24M queries=4
+[ep 01/30] train_loss=1.2334 val_loss=0.8064 val_exact=0.1701 lr=4.99e-04 time=24.3s
+  ↑ best.pt (val_exact=0.1701)
+[ep 02/30] train_loss=0.8095 val_loss=0.1595 val_exact=0.8274 lr=4.95e-04 time=24.0s
+  ↑ best.pt (val_exact=0.8274)
+[ep 03/30] train_loss=0.5999 val_loss=0.0850 val_exact=0.9532 lr=4.88e-04 time=23.8s
+  ↑ best.pt (val_exact=0.9532)
+[ep 04/30] train_loss=0.4670 val_loss=0.0489 val_exact=0.9917 lr=4.78e-04 time=24.1s
+  ↑ best.pt (val_exact=0.9917)
+[ep 05/30] train_loss=0.4111 val_loss=0.0511 val_exact=0.9942 lr=4.67e-04 time=23.6s
+  ↑ best.pt (val_exact=0.9942)
+[ep 06/30] train_loss=0.3889 val_loss=0.0575 val_exact=0.9921 lr=4.52e-04 time=23.8s
+[ep 07/30] train_loss=0.3764 val_loss=0.0513 val_exact=0.9934 lr=4.36e-04 time=24.4s
+[ep 08/30] train_loss=0.3640 val_loss=0.0418 val_exact=0.9950 lr=4.17e-04 time=23.8s
+  ↑ best.pt (val_exact=0.9950)
+[ep 09/30] train_loss=0.3606 val_loss=0.0408 val_exact=0.9983 lr=3.97e-04 time=24.0s
+  ↑ best.pt (val_exact=0.9983)
+[ep 10/30] train_loss=0.3517 val_loss=0.0391 val_exact=0.9975 lr=3.75e-04 time=23.9s
+[ep 11/30] train_loss=0.3450 val_loss=0.0465 val_exact=0.9971 lr=3.52e-04 time=23.6s
+[ep 12/30] train_loss=0.3408 val_loss=0.0448 val_exact=0.9975 lr=3.27e-04 time=24.4s
+[ep 13/30] train_loss=0.3376 val_loss=0.0415 val_exact=0.9988 lr=3.02e-04 time=23.6s
+  ↑ best.pt (val_exact=0.9988)
+[ep 14/30] train_loss=0.3324 val_loss=0.0447 val_exact=0.9992 lr=2.76e-04 time=23.8s
+  ↑ best.pt (val_exact=0.9992)
+[ep 15/30] train_loss=0.3289 val_loss=0.0450 val_exact=0.9979 lr=2.50e-04 time=24.3s
+[ep 16/30] train_loss=0.3271 val_loss=0.0407 val_exact=0.9975 lr=2.24e-04 time=23.6s
+[ep 17/30] train_loss=0.3230 val_loss=0.0464 val_exact=0.9983 lr=1.98e-04 time=24.2s
+[ep 18/30] train_loss=0.3206 val_loss=0.0451 val_exact=0.9988 lr=1.73e-04 time=23.6s
+[ep 19/30] train_loss=0.3173 val_loss=0.0442 val_exact=0.9983 lr=1.48e-04 time=23.6s
+[ep 20/30] train_loss=0.3136 val_loss=0.0430 val_exact=0.9979 lr=1.25e-04 time=24.2s
+[ep 21/30] train_loss=0.3122 val_loss=0.0430 val_exact=1.0000 lr=1.03e-04 time=23.6s
+  ↑ best.pt (val_exact=1.0000)
+[ep 22/30] train_loss=0.3095 val_loss=0.0451 val_exact=0.9988 lr=8.27e-05 time=24.8s
+[ep 23/30] train_loss=0.3079 val_loss=0.0432 val_exact=0.9975 lr=6.42e-05 time=23.5s
+[ep 24/30] train_loss=0.3067 val_loss=0.0435 val_exact=0.9996 lr=4.77e-05 time=23.8s
+[ep 25/30] train_loss=0.3057 val_loss=0.0433 val_exact=0.9996 lr=3.35e-05 time=23.9s
+[ep 26/30] train_loss=0.3046 val_loss=0.0444 val_exact=0.9992 lr=2.16e-05 time=23.9s
+[ep 27/30] train_loss=0.3039 val_loss=0.0439 val_exact=0.9996 lr=1.22e-05 time=24.0s
+[ep 28/30] train_loss=0.3032 val_loss=0.0442 val_exact=1.0000 lr=5.46e-06 time=24.0s
+[ep 29/30] train_loss=0.3029 val_loss=0.0440 val_exact=0.9996 lr=1.37e-06 time=23.6s
+[ep 30/30] train_loss=0.3029 val_loss=0.0441 val_exact=0.9996 lr=0.00e+00 time=24.0s
+[done] best=1.0000
